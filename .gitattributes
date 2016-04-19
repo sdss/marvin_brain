@@ -1,0 +1,9 @@
+* text=auto !eol
+etc/config.ini -text
+etc/marvin_brain.module -text
+python/brain/__init__.py -text
+python/brain/api/__init__.py -text
+python/brain/core/__init__.py -text
+python/brain/db/__init__.py -text
+python/brain/tests/__init__.py -text
+python/brain/utils/__init__.py -text
