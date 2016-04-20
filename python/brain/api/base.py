@@ -36,7 +36,7 @@ def processRequest(request=None):
     return form
 
 
-class BaseView(FlaskView):
+class BrainBaseView(FlaskView):
     """Super Class for all API Views to handle all global API items of interest"""
 
     def __init__(self):
