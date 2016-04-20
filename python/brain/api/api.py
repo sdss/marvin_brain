@@ -8,7 +8,7 @@ configkeys = {}
 
 
 class Interaction(object):
-    """ This class defines convenience wrappers for the Marvin RESTful API """
+    """ This class defines convenience wrappers for the Brain RESTful API """
 
     def __init__(self, route, params=None, request_type='post'):
         self.results = None
