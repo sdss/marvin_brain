@@ -17,34 +17,19 @@ Revision history:
 from __future__ import division
 from __future__ import print_function
 from flask.ext.classy import route
-from marvin.api.base import BaseView
-from marvin.utils.general import mangaid2plateifu as mangaid2plateifu
-#from marvin.api.cube import api
+from brain.api.base import BrainBaseView
 from flask import url_for, current_app
 import json
 import urllib
 
 
-#apiGeneral = Blueprint("apiGeneral", __name__)
+# apiGeneral = Blueprint("apiGeneral", __name__)
 
 
-class GeneralRequestsView(BaseView):
+class BrainGeneralRequestsView(BrainBaseView):
     """A collection of requests for generic purposes."""
 
     route_base = '/general/'
-
-    @route('/mangaid2plateifu/<mangaid>', endpoint='mangaid2plateifu')
-    def mangaid2plateifu(self, mangaid):
-
-        try:
-            plateifu = mangaid2plateifu(mangaid, mode='db')
-            self.results['data'] = plateifu
-            self.results['status'] = 1
-        except Exception as ee:
-            self.results['status'] = -1
-            self.results['error'] = ('manga2plateifu failed with error: {0}'.format(str(ee)))
-
-        return json.dumps(self.results)
 
     @route('/getroutemap', endpoint='getroutemap')
     def buildRouteMap(self):
@@ -53,10 +38,12 @@ class GeneralRequestsView(BaseView):
             Returns in self.results a key 'urlmap' of dictionary of routes.
             Syntax:  {blueprint: {endpoint: {'methods':x, 'url':x} }
             E.g. getSpectrum method
-            urlmap = {'api': {'getspectra': {'methods':['GET','POST'], 'url': '/api/cubes/{name}/spectra/{path}'} } }
+            urlmap = {'api': {'getspectra': {'methods':['GET','POST'],
+                                             'url': '/api/cubes/{name}/spectra/{path}'} } }
 
-            urls can now easily handle variable replacement in real code; MUST use keyword substitution
-            E.g.
+            urls can now easily handle variable replacement in real code; MUST use
+            keyword substitution. E.g.
+
             print urlmap['api']['getspectra']['url'].format(name='1-209232',path='x=10/y=5')
             returns '/api/cubes/1-209232/spectra/x=10/y=5'
         """
@@ -78,7 +65,7 @@ class GeneralRequestsView(BaseView):
             output[grp][endpoint]['methods'] = methods
             # build url
             rawurl = url_for(fullendpoint, **options)
-            url = urllib.unquote(rawurl).replace('[', '{').replace(']', '}')#.strip('/')
+            url = urllib.unquote(rawurl).replace('[', '{').replace(']', '}')
             output[grp][endpoint]['url'] = url
 
         res = {'urlmap': output}
@@ -86,4 +73,4 @@ class GeneralRequestsView(BaseView):
         return json.dumps(self.results)
 
 
-#GeneralRequestsView.register(apiGeneral)
+# GeneralRequestsView.register(apiGeneral)
