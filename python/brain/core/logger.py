@@ -35,22 +35,13 @@ def important(self, message, *args, **kws):
 logging.Logger.important = important
 
 
-def initLog():
-
-    defaultLogFilePath = os.path.join(os.environ['HOME'], '.brain')
-    if 'BRAIN_LOGS_DIR' in os.environ:
-        logFilePath = os.path.realpath(os.environ['BRAIN_LOGS_DIR'])
-    else:
-        logFilePath = os.path.realpath(defaultLogFilePath)
-
-    # Add filename
-    logFilePath = os.path.join(logFilePath, 'brain.log')
+def initLog(logFilePath, logLevel='WARNING', logFileLevel='DEBUG',
+            mode='append', wrapperLength=80):
 
     logging.setLoggerClass(BrainLogger)
     log = logging.getLogger('Brain')
-    log._set_defaults(
-        logLevel='WARNING', logFileLevel='DEBUG', logFilePath=logFilePath,
-        mode='append', wrapperLength=80)
+    log._set_defaults(logLevel=logLevel, logFileLevel=logFileLevel, logFilePath=logFilePath,
+                      mode=mode, wrapperLength=wrapperLength)
 
     return log
 
