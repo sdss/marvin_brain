@@ -3,6 +3,8 @@ import os
 import requests
 from brain.core.exceptions import BrainError
 from brain import bconfig
+from urlparse import urljoin
+from brain.core.core import URLMapDict
 
 configkeys = {}
 
@@ -20,10 +22,10 @@ class Interaction(object):
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout'}
 
         # TODO - look into this url routing , slash either
-        # self.url = os.path.join(config.sasurl, route) if self.route else None
 
-        self.url = self.route if bconfig.sasurl in self.route \
-            else os.path.join(bconfig.sasurl, route) if self.route else None
+        self.url = urljoin(bconfig.sasurl, route) if self.route else None
+        # self.url = self.route if bconfig.sasurl in self.route \
+        #     else os.path.join(bconfig.sasurl, route) if self.route else None
 
         if self.url:
             self._sendRequest(request_type)
@@ -42,6 +44,13 @@ class Interaction(object):
             except ValueError as e:
                 self.results = response.text
                 raise BrainError('Response not in JSON format. {0} {1}'.format(e, self.results))
+
+            # Raises an error if status is -1
+            if 'status' in self.results and self.results['status'] == -1:
+                errorMsg = 'no error message provided' \
+                    if 'error' not in self.results else self.results['error']
+                raise BrainError('Something went wrong with the interaction: {0}'.format(errorMsg))
+
         else:
             self.status_code = response.status_code
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
@@ -92,7 +101,11 @@ class Interaction(object):
 
     def getRouteMap(self):
         """Retrieve the URL routing map if it exists."""
-        return self.results.get('urlmap', None)
+
+        if 'urlmap' in self.results:
+            return URLMapDict(self.results['urlmap'])
+        else:
+            return URLMapDict()
 
     def getQuery(self):
         """Print SQL query."""

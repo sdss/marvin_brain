@@ -54,7 +54,7 @@ class BrainGeneralRequestsView(BrainBaseView):
             options = {}
             for arg in rule.arguments:
                 options[arg] = '[{0}]'.format(arg)
-            options['_external'] = True
+            options['_external'] = False
             # get endpoint
             fullendpoint = rule.endpoint
             esplit = fullendpoint.split('.')
@@ -68,7 +68,7 @@ class BrainGeneralRequestsView(BrainBaseView):
             url = urllib.unquote(rawurl).replace('[', '{').replace(']', '}')
             output[grp][endpoint]['url'] = url
 
-        res = {'urlmap': output}
+        res = {'urlmap': output, 'status': 1}
         self.update_results(res)
         return json.dumps(self.results)
 
