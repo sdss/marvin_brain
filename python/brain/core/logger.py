@@ -35,7 +35,7 @@ def important(self, message, *args, **kws):
 logging.Logger.important = important
 
 
-def initLog(logFilePath, logLevel='WARNING', logFileLevel='DEBUG',
+def initLog(logFilePath, logLevel='INFO', logFileLevel='DEBUG',
             mode='append', wrapperLength=80):
 
     logging.setLoggerClass(BrainLogger)
