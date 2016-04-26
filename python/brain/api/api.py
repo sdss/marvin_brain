@@ -6,10 +6,10 @@ from brain import bconfig
 from urlparse import urljoin
 from brain.core.core import URLMapDict
 
-configkeys = {}
+configkeys = []
 
 
-class Interaction(object):
+class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
     def __init__(self, route, params=None, request_type='post'):
@@ -93,11 +93,7 @@ class Interaction(object):
 
     def _loadConfigParams(self):
         """Load the local configuration into a parameters dictionary to be sent with the request"""
-        if self.params:
-            for k in configkeys:
-                self.params[k] = bconfig.__getattribute__(k)
-        else:
-            self.params = {k: bconfig.__getattribute__(k) for k in configkeys}
+        pass
 
     def getRouteMap(self):
         """Retrieve the URL routing map if it exists."""
