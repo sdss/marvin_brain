@@ -16,8 +16,17 @@ from flask import request
 from brain import bconfig
 
 
-def processRequest(request=None):
-    """Generally process the request for POST or GET, and build a form dict"""
+def processRequest(request=None, raw=None):
+    '''Generally process the request for POST or GET, and build a form dict
+
+        Parameters:
+            request (request):
+                HTTP request object containing POST or GET data
+            raw (bool):
+                Boolean indicating whether to return the raw request data or not
+        Returns:
+            Dict or ImmutableMultiDict
+    '''
 
     # get form data
     if request.method == 'POST':
@@ -26,6 +35,10 @@ def processRequest(request=None):
         data = request.args
     else:
         return None
+
+    # Return Raw Request Data
+    if raw:
+        return data
 
     # build form dictionary
     try:
