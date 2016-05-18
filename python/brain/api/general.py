@@ -18,6 +18,7 @@ from __future__ import division
 from __future__ import print_function
 from flask.ext.classy import route
 from brain.api.base import BrainBaseView
+from brain.core.exceptions import BrainError
 from flask import url_for, current_app
 import json
 import urllib
@@ -64,7 +65,10 @@ class BrainGeneralRequestsView(BrainBaseView):
             methods = ','.join(rule.methods)
             output[grp][endpoint]['methods'] = methods
             # build url
-            rawurl = url_for(fullendpoint, **options)
+            try:
+                rawurl = url_for(fullendpoint, **options)
+            except ValueError as e:
+                raise BrainError('Error generating url for {0}: {1}'.format(fullendpoint, e))
             url = urllib.unquote(rawurl).replace('[', '{').replace(']', '}')
             output[grp][endpoint]['url'] = url
 
