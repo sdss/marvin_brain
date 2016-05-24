@@ -36,17 +36,26 @@ class BrainGeneralRequestsView(BrainBaseView):
     def buildRouteMap(self):
         """ Build the URL route map for all routes in the Flask app.
 
-            Returns in self.results a key 'urlmap' of dictionary of routes.
-            Syntax:  {blueprint: {endpoint: {'methods':x, 'url':x} }
-            E.g. getSpectrum method
-            urlmap = {'api': {'getspectra': {'methods':['GET','POST'],
-                                             'url': '/api/cubes/{name}/spectra/{path}'} } }
+        Returns in self.results a key 'urlmap' of dictionary of routes.
 
-            urls can now easily handle variable replacement in real code; MUST use
-            keyword substitution. E.g.
+        Syntax:  {blueprint: {endpoint: {'methods':x, 'url':x} }
 
-            print urlmap['api']['getspectra']['url'].format(name='1-209232',path='x=10/y=5')
-            returns '/api/cubes/1-209232/spectra/x=10/y=5'
+        E.g. getSpectrum method
+        urlmap = {'api': {'getspectra': {'methods':['GET','POST'], 'url': '/api/cubes/{name}/spectra/{path}'} } }
+
+        urls can now easily handle variable replacement in real code; MUST use
+        keyword substitution. E.g.
+
+        :status 400: when form parameters are missing
+        :status 500: something goes wrong
+
+        Raises:
+            BrainError:
+                Raised when url_for can't format the endpoint name into a valid url.
+
+        Example:
+            >>> print urlmap['api']['getspectra']['url'].format(name='1-209232',path='x=10/y=5')
+            >>> '/api/cubes/1-209232/spectra/x=10/y=5'
         """
 
         output = {}
