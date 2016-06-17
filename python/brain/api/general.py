@@ -32,7 +32,12 @@ class BrainGeneralRequestsView(BrainBaseView):
 
     route_base = '/general/'
 
-    @route('/getroutemap', endpoint='getroutemap')
+    def index(self):
+        res = {'data': 'this is a general Brain Function!'}
+        self.update_results(res)
+        return json.dumps(self.results)
+
+    @route('/getroutemap/', endpoint='getroutemap')
     def buildRouteMap(self):
         """ Build the URL route map for all routes in the Flask app.
 
