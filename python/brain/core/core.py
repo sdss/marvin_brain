@@ -19,7 +19,7 @@ class URLMapDict(dict):
     """A custom dictionary for urlmap that fails with a custom error."""
 
     def __init__(self, inp={}):
-        self.update(**dict((kk, self.parse(vv)) for kk, vv in inp.iteritems()))
+        self.update(**dict((kk, self.parse(vv)) for kk, vv in inp.items()))
 
     @classmethod
     def parse(cls, vv):
