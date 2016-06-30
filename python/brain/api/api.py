@@ -3,8 +3,11 @@ import os
 import requests
 from brain.core.exceptions import BrainError
 from brain import bconfig
-from urlparse import urljoin
 from brain.core.core import URLMapDict
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
 
 configkeys = []
 
