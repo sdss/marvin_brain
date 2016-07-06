@@ -85,9 +85,9 @@ class BrainBaseView(FlaskView):
         """This performs a reset of the results dict after every request method runs.
 
         See Flask-Classy for more info on after_request."""
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+        #response.headers.add('Access-Control-Allow-Origin', '*')
+        #response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        #response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
 
         self.reset_results()
         return response
