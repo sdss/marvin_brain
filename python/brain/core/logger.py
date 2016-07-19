@@ -115,7 +115,7 @@ class BrainLogger(Logger):
 
         mod_name = None
         mod_path, ext = os.path.splitext(mod_path)
-        for name, mod in sys.modules.items():
+        for name, mod in list(sys.modules.items()):
             path = os.path.splitext(getattr(mod, '__file__', ''))[0]
             if path == mod_path:
                 mod_name = mod.__name__
