@@ -17,6 +17,7 @@ class BrainConfig(object):
 
         self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else 'https://sas.sdss.org/'
         self._mode = 'auto'
+        self.session_id = None
 
     @property
     def mode(self):

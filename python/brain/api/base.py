@@ -14,6 +14,7 @@ from __future__ import division
 from flask.ext.classy import FlaskView
 from flask import request
 from brain import bconfig
+from brain.core.exceptions import BrainError
 
 
 def processRequest(request=None, raw=None):
@@ -81,6 +82,9 @@ class BrainBaseView(FlaskView):
         # after_request; obstensibly the in and out configs should match)
         self.add_config()
 
+        # check API Authentication
+        self._checkAuth()
+
     def after_request(self, name, response):
         """This performs a reset of the results dict after every request method runs.
 
@@ -88,4 +92,19 @@ class BrainBaseView(FlaskView):
 
         self.reset_results()
         return response
+
+    def _checkAuth(self):
+        ''' Checks the API for authentication '''
+
+        if 'session_id' in self.results['inconfig']:
+            session_id = self.results['inconfig'].get('session_id', None)
+            # check for valid session_id
+            if session_id is not None:
+                # check if expired
+                pass
+            elif session_id is None or isexpired:
+                # get new
+                pass
+        else:
+            raise BrainError('API session id not found in incoming request parameters')
 
