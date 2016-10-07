@@ -1,5 +1,7 @@
 import numpy as np
 import os
+import decimal
+import datetime
 
 # General utilities
 
@@ -50,3 +52,11 @@ def convertIvarToErr(ivar):
     error[notnull] = 1 / np.sqrt(ivar[notnull])
     error = list(error)
     return error
+
+
+def alchemyencoder(obj):
+    """JSON encoder function for SQLAlchemy special classes."""
+    if isinstance(obj, datetime.date):
+        return obj.isoformat()
+    elif isinstance(obj, decimal.Decimal):
+        return float(obj)
