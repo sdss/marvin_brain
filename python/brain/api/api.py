@@ -50,14 +50,12 @@ class BrainInteraction(object):
     def _setRequestSession(self):
         ''' creates or sets the Brain requests Session object '''
         if isinstance(bconfig.request_session, type(None)):
-            print('creating session')
             if not cache:
                 bconfig.request_session = requests.Session()
             else:
                 bconfig.request_session = cache(requests.Session())
             self.session = bconfig.request_session
         else:
-            print('using old session')
             self.session = bconfig.request_session
 
     def setAuth(self, authtype='netrc'):
@@ -86,7 +84,7 @@ class BrainInteraction(object):
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
             if self.status_code == 401:
                 if self.authtype == 'netrc':
-                    msg = 'Please create or check credientials in your local .netrc file'
+                    msg = 'Please create or check credentials in your local .netrc file'
                 elif self.authtype == 'oauth':
                     msg = 'Please check your Oauth authentication'
                 elif self.authtype == 'http':

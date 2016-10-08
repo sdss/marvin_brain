@@ -24,7 +24,7 @@ class BrainError(Exception):
     pass
 
 
-class BrainApiAuthError(Exception):
+class BrainApiAuthError(BrainError):
     pass
 
 
