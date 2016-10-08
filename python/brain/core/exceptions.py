@@ -17,10 +17,14 @@ from __future__ import print_function
 
 
 __all__ = ['BrainError', 'BrainUserWarning', 'BrainSkippedTestWargning',
-           'BrainNotImplemented']
+           'BrainNotImplemented', 'BrainApiAuthError']
 
 
 class BrainError(Exception):
+    pass
+
+
+class BrainApiAuthError(Exception):
     pass
 
 

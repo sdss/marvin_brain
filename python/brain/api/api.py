@@ -1,13 +1,17 @@
 from __future__ import print_function
 import os
 import requests
-from brain.core.exceptions import BrainError
+from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.core.core import URLMapDict
 try:
     from urlparse import urljoin
 except ImportError:
     from urllib.parse import urljoin
+try:
+    from cachecontrol import CacheControl as cache
+except ImportError:
+    cache = None
 
 configkeys = []
 
@@ -15,7 +19,7 @@ configkeys = []
 class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
-    def __init__(self, route, params=None, request_type='post', timeout=(3.05, 300)):
+    def __init__(self, route, params=None, request_type='post', auth='netrc', timeout=(3.05, 300)):
         self.results = None
         self.route = route
         self.params = params
@@ -27,6 +31,13 @@ class BrainInteraction(object):
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
+        # set request Session
+        self._setRequestSession()
+
+        # set authentication
+        self.setAuth(authtype=auth)
+
+        # sends the request
         if self.url:
             self._sendRequest(request_type)
         else:
@@ -35,6 +46,32 @@ class BrainInteraction(object):
     def __repr__(self):
         return ('Interaction(route={0}, params={1}, request_type={2})'
                 .format(self.route, repr(self.params), self.request_type))
+
+    def _setRequestSession(self):
+        ''' creates or sets the Brain requests Session object '''
+        if isinstance(bconfig.request_session, type(None)):
+            print('creating session')
+            if not cache:
+                bconfig.request_session = requests.Session()
+            else:
+                bconfig.request_session = cache(requests.Session())
+            self.session = bconfig.request_session
+        else:
+            print('using old session')
+            self.session = bconfig.request_session
+
+    def setAuth(self, authtype='netrc'):
+        ''' set the session authentication '''
+        self.authtype = authtype
+        if authtype == 'netrc':
+            # do nothing since this is default with no auth set
+            pass
+        elif authtype == 'http':
+            from requests_toolbelt import GuessAuth
+            auth = GuessAuth('user', 'passwd')
+            self.session.auth = auth
+        elif authtype == 'oauth':
+            raise BrainNotImplemented('OAuth authentication')
 
     def _checkResponse(self, response):
         ''' Checks the response for proper http status code '''
@@ -47,7 +84,16 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
-            raise BrainError('Requests Http Status Error: {0}'.format(http))
+            if self.status_code == 401:
+                if self.authtype == 'netrc':
+                    msg = 'Please create or check credientials in your local .netrc file'
+                elif self.authtype == 'oauth':
+                    msg = 'Please check your Oauth authentication'
+                elif self.authtype == 'http':
+                    msg = 'Please check your http/digest authentication'
+                raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
+            else:
+                raise BrainError('Requests Http Status Error: {0}'.format(http))
         else:
             # Not bad
             assert isbad is None, 'Http status code should not be bad'
@@ -72,13 +118,13 @@ class BrainInteraction(object):
 
         # Loads the local config parameters
         self._loadConfigParams()
-        print('brain sending these params', self.params)
+
         # Send the request
         try:
             if request_type == 'get':
-                self._resp = requests.get(self.url, params=self.params, timeout=self.timeout)
+                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout)
             elif request_type == 'post':
-                self._resp = requests.post(self.url, data=self.params, timeout=self.timeout)
+                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout)
         except requests.Timeout as rt:
             raise BrainError('Requests Timeout Error: {0}'.format(rt))
         except requests.URLRequired as urlreq:
@@ -89,7 +135,7 @@ class BrainInteraction(object):
             raise BrainError('Ambiguous Requests Error: {0}'.format(req))
         else:
             # Check the response if it's good
-            self._checkResponse(self._resp)
+            self._checkResponse(self._response)
 
     def getData(self, astype=None):
         data = self.results['data'] if 'data' in self.results else None
@@ -112,6 +158,7 @@ class BrainInteraction(object):
 
     def _loadConfigParams(self):
         """Load the local configuration into a parameters dictionary to be sent with the request"""
+        print('brain load config params')
         self.params.update({'session_id': bconfig._session_id})
 
     def getRouteMap(self):

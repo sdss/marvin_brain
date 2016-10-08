@@ -83,7 +83,7 @@ class BrainBaseView(FlaskView):
         self.add_config()
 
         # check API Authentication
-        self._checkAuth()
+        # self._checkAuth()
 
     def after_request(self, name, response):
         """This performs a reset of the results dict after every request method runs.
@@ -96,6 +96,7 @@ class BrainBaseView(FlaskView):
     def _checkAuth(self):
         ''' Checks the API for authentication '''
 
+        print('api inconfig', self.results['inconfig'])
         if 'session_id' in self.results['inconfig']:
             session_id = self.results['inconfig'].get('session_id', None)
             # check for valid session_id
@@ -106,5 +107,6 @@ class BrainBaseView(FlaskView):
                 # get new
                 pass
         else:
-            raise BrainError('API session id not found in incoming request parameters')
+            pass
+            #raise BrainError('API session id not found in incoming request parameters')
 

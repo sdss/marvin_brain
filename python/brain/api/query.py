@@ -1,5 +1,4 @@
 import json
-from flask.ext.classy import route
 from brain.api.base import BrainBaseView
 
 
@@ -12,8 +11,3 @@ class BrainQueryView(BrainBaseView):
         self.results['data'] = 'this is a query!'
         return json.dumps(self.results)
 
-    @route('/webtable/', methods=['POST'], endpoint='webtable')
-    def webtable(self):
-        """Empty for now."""
-
-        pass
