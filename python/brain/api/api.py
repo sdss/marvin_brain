@@ -58,6 +58,12 @@ class BrainInteraction(object):
         else:
             self.session = bconfig.request_session
 
+    def _closeRequestSession(self):
+        ''' closes the Brain requests Session object'''
+        self.session.close()
+        bconfig.request_session.close()
+        bconfig.request_session = None
+
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
         self.authtype = authtype
@@ -89,25 +95,33 @@ class BrainInteraction(object):
                     msg = 'Please check your Oauth authentication'
                 elif self.authtype == 'http':
                     msg = 'Please check your http/digest authentication'
+                self._closeRequestSession()
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
             else:
+                self._closeRequestSession()
                 raise BrainError('Requests Http Status Error: {0}'.format(http))
         else:
             # Not bad
             assert isbad is None, 'Http status code should not be bad'
             assert response.ok is True, 'Ok status should be true'
 
+            # if 'route' not in self.url and 'clean' not in self.url:
+            #     self._closeRequestSession()
+            #     raise BrainError('test error is now raised here')
+
             self.status_code = response.status_code
             try:
                 self.results = response.json()
             except ValueError as e:
                 self.results = response.text
+                self._closeRequestSession()
                 raise BrainError('Response not in JSON format. {0} {1}'.format(e, self.results))
 
             # Raises an error if status is -1
             if 'status' in self.results and self.results['status'] == -1:
                 errorMsg = 'no error message provided' \
                     if 'error' not in self.results else self.results['error']
+                self._closeRequestSession()
                 raise BrainError('Something went wrong on the server side: {0}'.format(errorMsg))
 
     def _sendRequest(self, request_type):
@@ -124,12 +138,16 @@ class BrainInteraction(object):
             elif request_type == 'post':
                 self._response = self.session.post(self.url, data=self.params, timeout=self.timeout)
         except requests.Timeout as rt:
+            self._closeRequestSession()
             raise BrainError('Requests Timeout Error: {0}'.format(rt))
         except requests.URLRequired as urlreq:
+            self._closeRequestSession()
             raise BrainError('Requests Valid URL Required: {0}'.format(urlreq))
         except requests.ConnectionError as con:
+            self._closeRequestSession()
             raise BrainError('Requests Connection Error: {0}'.format(con))
         except requests.RequestException as req:
+            self._closeRequestSession()
             raise BrainError('Ambiguous Requests Error: {0}'.format(req))
         else:
             # Check the response if it's good
