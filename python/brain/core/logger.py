@@ -121,10 +121,7 @@ class BrainLogger(Logger):
                 mod_name = mod.__name__
                 break
 
-        if mod_name is not None:
-            self.warning(message, extra={'origin': mod_name})
-        else:
-            self.warning(message)
+        self.warning(message, extra={'origin': mod_name or ''})
 
     def _stream_formatter(self, record):
         """The formatter for standard output."""
