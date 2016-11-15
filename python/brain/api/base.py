@@ -11,7 +11,7 @@ Revision History:
 """
 from __future__ import print_function
 from __future__ import division
-from flask.ext.classy import FlaskView
+from flask_classy import FlaskView
 from flask import request
 from brain import bconfig
 from brain.core.exceptions import BrainError
