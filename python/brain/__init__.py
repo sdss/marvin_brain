@@ -19,6 +19,7 @@ class BrainConfig(object):
         self._mode = 'auto'
         self.session_id = None
         self.request_session = None
+        self.traceback = None
 
     @property
     def mode(self):

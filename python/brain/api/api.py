@@ -121,8 +121,13 @@ class BrainInteraction(object):
             if 'status' in self.results and self.results['status'] == -1:
                 errorMsg = 'no error message provided' \
                     if 'error' not in self.results else self.results['error']
+                self._check_for_traceback()
                 self._closeRequestSession()
                 raise BrainError('Something went wrong on the server side: {0}'.format(errorMsg))
+
+    def _check_for_traceback(self):
+        ''' checks the response for a traceback in the results response '''
+        bconfig.traceback = self.results.get('traceback', None)
 
     def _sendRequest(self, request_type):
         ''' sends the api requests to the server '''
@@ -175,7 +180,7 @@ class BrainInteraction(object):
     def _loadConfigParams(self):
         """Load the local configuration into a parameters dictionary to be sent with the request"""
         print('brain load config params')
-        self.params.update({'session_id': bconfig._session_id})
+        self.params.update({'session_id': bconfig.session_id})
 
     def getRouteMap(self):
         """Retrieve the URL routing map if it exists."""

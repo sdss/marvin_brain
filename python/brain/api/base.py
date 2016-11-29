@@ -59,7 +59,7 @@ class BrainBaseView(FlaskView):
 
     def reset_results(self):
         """Resets results to return from API as JSON."""
-        self.results = {'data': None, 'status': -1, 'error': None}
+        self.results = {'data': None, 'status': -1, 'error': None, 'traceback': None}
 
     def update_results(self, newresults):
         """ Add to or Update the results dictionary """
