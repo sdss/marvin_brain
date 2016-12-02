@@ -123,6 +123,9 @@ class BrainLogger(Logger):
 
         self.warning(message, extra={'origin': mod_name or ''})
 
+    def warning(self, message):
+        super(BrainLogger, self).warning(message, extra={'origin': ''})
+
     def _stream_formatter(self, record):
         """The formatter for standard output."""
         if record.levelno < logging.DEBUG:
