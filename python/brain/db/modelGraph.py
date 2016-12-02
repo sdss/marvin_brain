@@ -41,7 +41,7 @@ def getModels(module):
     """
 
     models = []
-    attrs = vars(module).keys()
+    attrs = list(vars(module).keys())
 
     # Loops over all the attributes in the module and selects those that are
     # model classes.
