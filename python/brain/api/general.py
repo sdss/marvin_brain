@@ -21,7 +21,11 @@ from brain.api.base import BrainBaseView
 from brain.core.exceptions import BrainError
 from flask import url_for, current_app
 import json
-import urllib
+try:
+    from urllib import unquote
+except ImportError:
+    from urllib.parse import unquote
+
 
 
 # apiGeneral = Blueprint("apiGeneral", __name__)
@@ -83,7 +87,7 @@ class BrainGeneralRequestsView(BrainBaseView):
                 rawurl = url_for(fullendpoint, **options)
             except ValueError as e:
                 raise BrainError('Error generating url for {0}: {1}'.format(fullendpoint, e))
-            url = urllib.unquote(rawurl).replace('[', '{').replace(']', '}')
+            url = unquote(rawurl).replace('[', '{').replace(']', '}')
             output[grp][endpoint]['url'] = url
 
         res = {'urlmap': output, 'status': 1}
