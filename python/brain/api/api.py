@@ -25,7 +25,6 @@ class BrainInteraction(object):
         self.params = params
         self.request_type = request_type
         self.timeout = timeout
-        self.headers = {'Content-Type': 'application/json'}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout'}
@@ -140,9 +139,9 @@ class BrainInteraction(object):
         # Send the request
         try:
             if request_type == 'get':
-                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout, headers=self.headers)
+                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout)
             elif request_type == 'post':
-                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout, headers=self.headers)
+                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout)
         except requests.Timeout as rt:
             self._closeRequestSession()
             raise BrainError('Requests Timeout Error: {0}'.format(rt))
