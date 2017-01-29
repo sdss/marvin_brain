@@ -17,35 +17,45 @@ from brain import bconfig
 from brain.core.exceptions import BrainError
 
 
-def processRequest(request=None, raw=None):
+def processRequest(request=None, as_dict=None):
     '''Generally process the request for POST or GET, and build a form dict
 
         Parameters:
             request (request):
                 HTTP request object containing POST or GET data
-            raw (bool):
-                Boolean indicating whether to return the raw request data or not
+            as_dict (bool):
+                Boolean indicating whether to return the data as a standard dict or not
         Returns:
             Dict or ImmutableMultiDict
     '''
 
     # get form data
     if request.method == 'POST':
-        data = request.form
+        if not request.form:
+            # if data is content-type json
+            data = request.get_json()
+        else:
+            # if data is content-type form
+            data = request.form
     elif request.method == 'GET':
         data = request.args
     else:
         return None
 
-    # Return Raw Request Data
-    if raw:
-        return data
-
-    # build form dictionary
-    try:
-        form = {key: val if len(val) > 1 else val[0] for key, val in data.iterlists()}
-    except AttributeError:
-        form = {key: val if len(val) > 1 else val[0] for key, val in data.lists()}
+    # convert ImmutableMultiDict to dictionary (if get or post-form) or use dict if post-json
+    if as_dict:
+        if type(data) == dict:
+            form = data
+        else:
+            # use multidict lists and iterlists to group multiple values for same in key into list
+            try:
+                # py2.7
+                form = {key: val if len(val) > 1 else val[0] for key, val in data.iterlists()}
+            except AttributeError:
+                # py3.5
+                form = {key: val if len(val) > 1 else val[0] for key, val in data.lists()}
+    else:
+        form = data
 
     return form
 

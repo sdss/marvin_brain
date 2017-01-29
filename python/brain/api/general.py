@@ -27,10 +27,6 @@ except ImportError:
     from urllib.parse import unquote
 
 
-
-# apiGeneral = Blueprint("apiGeneral", __name__)
-
-
 class BrainGeneralRequestsView(BrainBaseView):
     """A collection of requests for generic purposes."""
 
