@@ -19,15 +19,18 @@ configkeys = []
 class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
-    def __init__(self, route, params=None, request_type='post', auth='netrc', timeout=(3.05, 300)):
+    def __init__(self, route, params=None, request_type='post', auth='netrc',
+                 timeout=(3.05, 300), headers={}):
         self.results = None
         self.route = route
         self.params = params
         self.request_type = request_type
         self.timeout = timeout
+        self.headers = headers
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
-                            400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout'}
+                            400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
+                            422: 'Unprocessable Entity'}
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
@@ -99,6 +102,7 @@ class BrainInteraction(object):
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
             else:
                 self._closeRequestSession()
+                print('any data in repsonse', response.json())
                 raise BrainError('Requests Http Status Error: {0}'.format(http))
         else:
             # Not bad
@@ -135,13 +139,13 @@ class BrainInteraction(object):
 
         # Loads the local config parameters
         self._loadConfigParams()
-
+        print('brain about to send request', self.params)
         # Send the request
         try:
             if request_type == 'get':
-                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout)
+                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout, headers=self.headers)
             elif request_type == 'post':
-                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout)
+                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout, headers=self.headers)
         except requests.Timeout as rt:
             self._closeRequestSession()
             raise BrainError('Requests Timeout Error: {0}'.format(rt))
