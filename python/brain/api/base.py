@@ -42,6 +42,10 @@ def processRequest(request=None, as_dict=None):
     else:
         return None
 
+    # if no data at all, return nothing
+    if not data:
+        return {}
+
     # convert ImmutableMultiDict to dictionary (if get or post-form) or use dict if post-json
     if as_dict:
         if type(data) == dict:

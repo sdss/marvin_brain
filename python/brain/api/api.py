@@ -80,6 +80,14 @@ class BrainInteraction(object):
         elif authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
 
+    def _get_json_data(self, response):
+        ''' Try to extract any json data '''
+        try:
+            json = response.json()
+        except ValueError as e:
+            json = None
+        return json
+
     def _checkResponse(self, response):
         ''' Checks the response for proper http status code '''
 
@@ -91,6 +99,7 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
+            json = self._get_json_data(response)
             if self.status_code == 401:
                 if self.authtype == 'netrc':
                     msg = 'Please create or check credentials in your local .netrc file'
@@ -100,10 +109,12 @@ class BrainInteraction(object):
                     msg = 'Please check your http/digest authentication'
                 self._closeRequestSession()
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
+            elif self.status_code == 422:
+                self._closeRequestSession()
+                raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json))
             else:
                 self._closeRequestSession()
-                print('any data in repsonse', response.json())
-                raise BrainError('Requests Http Status Error: {0}'.format(http))
+                raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, json['api_error']['traceback']))
         else:
             # Not bad
             assert isbad is None, 'Http status code should not be bad'
@@ -114,12 +125,11 @@ class BrainInteraction(object):
             #     raise BrainError('test error is now raised here')
 
             self.status_code = response.status_code
-            try:
-                self.results = response.json()
-            except ValueError as e:
+            self.results = self._get_json_data(response)
+            if not self.results:
                 self.results = response.text
                 self._closeRequestSession()
-                raise BrainError('Response not in JSON format. {0} {1}'.format(e, self.results))
+                raise BrainError('Response not in JSON format. {0}'.format(self.results))
 
             # Raises an error if status is -1
             if 'status' in self.results and self.results['status'] == -1:
