@@ -19,7 +19,7 @@ from __future__ import print_function
 from flask_classy import route
 from brain.api.base import BrainBaseView
 from brain.core.exceptions import BrainError
-from flask import url_for, current_app
+from flask import url_for, current_app, jsonify
 import json
 try:
     from urllib import unquote
@@ -35,7 +35,7 @@ class BrainGeneralRequestsView(BrainBaseView):
     def index(self):
         res = {'data': 'this is a general Brain Function!'}
         self.update_results(res)
-        return json.dumps(self.results)
+        return jsonify(self.results)
 
     @route('/getroutemap/', endpoint='getroutemap')
     def buildRouteMap(self):
@@ -88,7 +88,7 @@ class BrainGeneralRequestsView(BrainBaseView):
 
         res = {'urlmap': output, 'status': 1}
         self.update_results(res)
-        return json.dumps(self.results)
+        return jsonify(self.results)
 
 
 # GeneralRequestsView.register(apiGeneral)
