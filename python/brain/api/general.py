@@ -41,26 +41,49 @@ class BrainGeneralRequestsView(BrainBaseView):
     def buildRouteMap(self):
         """ Build the URL route map for all routes in the Flask app.
 
-        Returns in self.results a key 'urlmap' of dictionary of routes.
+        .. :quickref: General; Returns the urlmap dictionary of Marvin API routes
 
-        Syntax:  {blueprint: {endpoint: {'methods':x, 'url':x} }
+        Syntax of output:  {"api": {blueprint: {endpoint: {'methods':x, 'url':x} } }
 
-        E.g. getSpectrum method
-        urlmap = {'api': {'getspectra': {'methods':['GET','POST'], 'url': '/api/cubes/{name}/spectra/{path}'} } }
+        :form release: the release of MaNGA
+        :resjson int status: status of response. 1 if good, -1 if bad.
+        :resjson string error: error message, null if None
+        :resjson json inconfig: json of incoming configuration
+        :resjson json utahconfig: json of outcoming configuration
+        :resjson string traceback: traceback of an error, null if None
+        :resjson json data: dictionary of returned data
+        :json dict urlmap: dict of the Marvin API routes
+        :resheader Content-Type: application/json
+        :statuscode 200: no error
+        :statuscode 422: invalid input parameters
+        :raises BrainError: Raised when url_for can't format the endpoint name into a valid url.
 
-        urls can now easily handle variable replacement in real code; MUST use
-        keyword substitution. E.g.
+        **Example request**:
 
-        :status 400: when form parameters are missing
-        :status 500: something goes wrong
+        .. sourcecode:: http
 
-        Raises:
-            BrainError:
-                Raised when url_for can't format the endpoint name into a valid url.
+           GET /marvin2/api/general/getroutemap/ HTTP/1.1
+           Host: api.sdss.org
+           Accept: application/json, */*
 
-        Example:
-            >>> print urlmap['api']['getspectra']['url'].format(name='1-209232',path='x=10/y=5')
-            >>> '/api/cubes/1-209232/spectra/x=10/y=5'
+        **Example response**:
+
+        .. sourcecode:: http
+
+           HTTP/1.1 200 OK
+           Content-Type: application/json
+           {
+              "status": 1,
+              "error": null,
+              "inconfig": {"release": "MPL-5"},
+              "utahconfig": {"release": "MPL-5", "mode": "local"},
+              "traceback": null,
+              "data": {"urlmap": {"api": {"CubeView:index": {"methods": "HEAD,OPTIONS,GET","url": "/marvin2/api/cubes/"},
+                                         ...
+                                 }
+                      }
+           }
+
         """
 
         output = {}
