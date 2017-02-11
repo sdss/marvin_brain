@@ -17,7 +17,7 @@ from brain import bconfig
 from brain.core.exceptions import BrainError
 
 
-def processRequest(request=None, as_dict=None):
+def processRequest(request=None, as_dict=None, param=None):
     '''Generally process the request for POST or GET, and build a form dict
 
         Parameters:
@@ -40,11 +40,11 @@ def processRequest(request=None, as_dict=None):
     elif request.method == 'GET':
         data = request.args
     else:
-        return None
+        return {}
 
     # # if no data at all, return nothing
-    # if not data:
-    #     return {}
+    if param and data:
+        return data.get(param, None)
 
     # convert ImmutableMultiDict to dictionary (if get or post-form) or use dict if post-json
     if as_dict:
@@ -72,15 +72,12 @@ class BrainBaseView(FlaskView):
         bconfig.mode = 'local'
 
     def reset_results(self):
-        """Resets results to return from API as JSON."""
         self.results = {'data': None, 'status': -1, 'error': None, 'traceback': None}
 
     def update_results(self, newresults):
-        """ Add to or Update the results dictionary """
         self.results.update(newresults)
 
     def reset_status(self):
-        """ Resets the status to -1 """
         self.results['status'] = -1
 
     def add_config(self):
@@ -89,6 +86,11 @@ class BrainBaseView(FlaskView):
     def before_request(self, *args, **kwargs):
         form = processRequest(request=request)
         print('my form', form)
+        print('form', request.form)
+        print('json', request.get_json())
+        print('test release', processRequest(request=request, param='release'))
+        self._release = form.get('release', None)
+        self._endpoint = request.endpoint
         self.results['inconfig'] = form
         for key, val in form.items():
             bconfig.__setattr__(key, val)
@@ -104,6 +106,7 @@ class BrainBaseView(FlaskView):
 
         See Flask-Classy for more info on after_request."""
 
+        print('after the response is over')
         self.reset_results()
         return response
 
