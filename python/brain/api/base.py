@@ -89,11 +89,12 @@ class BrainBaseView(FlaskView):
         print('form', request.form)
         print('json', request.get_json())
         print('test release', processRequest(request=request, param='release'))
-        self._release = form.get('release', None)
+        self._release = form.get('release', None) if form else None
         self._endpoint = request.endpoint
         self.results['inconfig'] = form
-        for key, val in form.items():
-            bconfig.__setattr__(key, val)
+        if form:
+            for key, val in form.items():
+                bconfig.__setattr__(key, val)
         # adds the out going config info into the results (placed here since didn't work in
         # after_request; obstensibly the in and out configs should match)
         self.add_config()
