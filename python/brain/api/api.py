@@ -20,13 +20,13 @@ class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
     def __init__(self, route, params=None, request_type='post', auth='netrc',
-                 timeout=(3.05, 300), headers={}):
+                 timeout=(3.05, 300), headers=None):
         self.results = None
         self.route = route
         self.params = params
         self.request_type = request_type
         self.timeout = timeout
-        self.headers = headers
+        self.headers = headers if headers is not None else {}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
