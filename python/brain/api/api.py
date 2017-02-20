@@ -149,7 +149,6 @@ class BrainInteraction(object):
 
         # Loads the local config parameters
         self._loadConfigParams()
-        print('brain about to send request', self.params)
         # Send the request
         try:
             if request_type == 'get':
@@ -193,7 +192,6 @@ class BrainInteraction(object):
 
     def _loadConfigParams(self):
         """Load the local configuration into a parameters dictionary to be sent with the request"""
-        print('brain load config params')
         self.params.update({'session_id': bconfig.session_id})
 
     def getRouteMap(self):

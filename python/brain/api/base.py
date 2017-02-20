@@ -85,10 +85,6 @@ class BrainBaseView(FlaskView):
 
     def before_request(self, *args, **kwargs):
         form = processRequest(request=request)
-        print('my form', form)
-        print('form', request.form)
-        print('json', request.get_json())
-        print('test release', processRequest(request=request, param='release'))
         self._release = form.get('release', None) if form else None
         self._endpoint = request.endpoint
         self.results['inconfig'] = form
@@ -107,7 +103,6 @@ class BrainBaseView(FlaskView):
 
         See Flask-Classy for more info on after_request."""
 
-        print('after the response is over')
         self.reset_results()
         return response
 
