@@ -19,16 +19,12 @@ from __future__ import print_function
 from flask_classy import route
 from brain.api.base import BrainBaseView
 from brain.core.exceptions import BrainError
-from flask import url_for, current_app
+from flask import url_for, current_app, jsonify
 import json
 try:
     from urllib import unquote
 except ImportError:
     from urllib.parse import unquote
-
-
-
-# apiGeneral = Blueprint("apiGeneral", __name__)
 
 
 class BrainGeneralRequestsView(BrainBaseView):
@@ -39,32 +35,55 @@ class BrainGeneralRequestsView(BrainBaseView):
     def index(self):
         res = {'data': 'this is a general Brain Function!'}
         self.update_results(res)
-        return json.dumps(self.results)
+        return jsonify(self.results)
 
     @route('/getroutemap/', endpoint='getroutemap')
     def buildRouteMap(self):
         """ Build the URL route map for all routes in the Flask app.
 
-        Returns in self.results a key 'urlmap' of dictionary of routes.
+        .. :quickref: General; Returns the urlmap dictionary of Marvin API routes
 
-        Syntax:  {blueprint: {endpoint: {'methods':x, 'url':x} }
+        Syntax of output:  {"api": {blueprint: {endpoint: {'methods':x, 'url':x} } }
 
-        E.g. getSpectrum method
-        urlmap = {'api': {'getspectra': {'methods':['GET','POST'], 'url': '/api/cubes/{name}/spectra/{path}'} } }
+        :form release: the release of MaNGA
+        :resjson int status: status of response. 1 if good, -1 if bad.
+        :resjson string error: error message, null if None
+        :resjson json inconfig: json of incoming configuration
+        :resjson json utahconfig: json of outcoming configuration
+        :resjson string traceback: traceback of an error, null if None
+        :resjson json data: dictionary of returned data
+        :json dict urlmap: dict of the Marvin API routes
+        :resheader Content-Type: application/json
+        :statuscode 200: no error
+        :statuscode 422: invalid input parameters
+        :raises BrainError: Raised when url_for can't format the endpoint name into a valid url.
 
-        urls can now easily handle variable replacement in real code; MUST use
-        keyword substitution. E.g.
+        **Example request**:
 
-        :status 400: when form parameters are missing
-        :status 500: something goes wrong
+        .. sourcecode:: http
 
-        Raises:
-            BrainError:
-                Raised when url_for can't format the endpoint name into a valid url.
+           GET /marvin2/api/general/getroutemap/ HTTP/1.1
+           Host: api.sdss.org
+           Accept: application/json, */*
 
-        Example:
-            >>> print urlmap['api']['getspectra']['url'].format(name='1-209232',path='x=10/y=5')
-            >>> '/api/cubes/1-209232/spectra/x=10/y=5'
+        **Example response**:
+
+        .. sourcecode:: http
+
+           HTTP/1.1 200 OK
+           Content-Type: application/json
+           {
+              "status": 1,
+              "error": null,
+              "inconfig": {"release": "MPL-5"},
+              "utahconfig": {"release": "MPL-5", "mode": "local"},
+              "traceback": null,
+              "data": {"urlmap": {"api": {"CubeView:index": {"methods": "HEAD,OPTIONS,GET","url": "/marvin2/api/cubes/"},
+                                         ...
+                                 }
+                      }
+           }
+
         """
 
         output = {}
@@ -92,7 +111,7 @@ class BrainGeneralRequestsView(BrainBaseView):
 
         res = {'urlmap': output, 'status': 1}
         self.update_results(res)
-        return json.dumps(self.results)
+        return jsonify(self.results)
 
 
 # GeneralRequestsView.register(apiGeneral)

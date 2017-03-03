@@ -17,35 +17,49 @@ from brain import bconfig
 from brain.core.exceptions import BrainError
 
 
-def processRequest(request=None, raw=None):
+def processRequest(request=None, as_dict=None, param=None):
     '''Generally process the request for POST or GET, and build a form dict
 
         Parameters:
             request (request):
                 HTTP request object containing POST or GET data
-            raw (bool):
-                Boolean indicating whether to return the raw request data or not
+            as_dict (bool):
+                Boolean indicating whether to return the data as a standard dict or not
         Returns:
             Dict or ImmutableMultiDict
     '''
 
     # get form data
     if request.method == 'POST':
-        data = request.form
+        if not request.form:
+            # if data is content-type json
+            data = request.get_json()
+        else:
+            # if data is content-type form
+            data = request.form
     elif request.method == 'GET':
         data = request.args
     else:
-        return None
+        return {}
 
-    # Return Raw Request Data
-    if raw:
-        return data
+    # # if no data at all, return nothing
+    if param and data:
+        return data.get(param, None)
 
-    # build form dictionary
-    try:
-        form = {key: val if len(val) > 1 else val[0] for key, val in data.iterlists()}
-    except AttributeError:
-        form = {key: val if len(val) > 1 else val[0] for key, val in data.lists()}
+    # convert ImmutableMultiDict to dictionary (if get or post-form) or use dict if post-json
+    if as_dict:
+        if type(data) == dict:
+            form = data
+        else:
+            # use multidict lists and iterlists to group multiple values for same in key into list
+            try:
+                # py2.7
+                form = {key: val if len(val) > 1 else val[0] for key, val in data.iterlists()}
+            except AttributeError:
+                # py3.5
+                form = {key: val if len(val) > 1 else val[0] for key, val in data.lists()}
+    else:
+        form = data
 
     return form
 
@@ -58,15 +72,12 @@ class BrainBaseView(FlaskView):
         bconfig.mode = 'local'
 
     def reset_results(self):
-        """Resets results to return from API as JSON."""
         self.results = {'data': None, 'status': -1, 'error': None, 'traceback': None}
 
     def update_results(self, newresults):
-        """ Add to or Update the results dictionary """
         self.results.update(newresults)
 
     def reset_status(self):
-        """ Resets the status to -1 """
         self.results['status'] = -1
 
     def add_config(self):
@@ -74,10 +85,12 @@ class BrainBaseView(FlaskView):
 
     def before_request(self, *args, **kwargs):
         form = processRequest(request=request)
-        print('my form', form)
+        self._release = form.get('release', None) if form else None
+        self._endpoint = request.endpoint
         self.results['inconfig'] = form
-        for key, val in form.items():
-            bconfig.__setattr__(key, val)
+        if form:
+            for key, val in form.items():
+                bconfig.__setattr__(key, val)
         # adds the out going config info into the results (placed here since didn't work in
         # after_request; obstensibly the in and out configs should match)
         self.add_config()

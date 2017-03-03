@@ -1,5 +1,6 @@
 import json
 from brain.api.base import BrainBaseView
+from flask import jsonify
 
 
 class BrainQueryView(BrainBaseView):
@@ -9,5 +10,5 @@ class BrainQueryView(BrainBaseView):
 
     def index(self):
         self.results['data'] = 'this is a query!'
-        return json.dumps(self.results)
+        return jsonify(self.results)
 

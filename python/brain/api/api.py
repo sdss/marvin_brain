@@ -19,15 +19,18 @@ configkeys = []
 class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
-    def __init__(self, route, params=None, request_type='post', auth='netrc', timeout=(3.05, 300)):
+    def __init__(self, route, params=None, request_type='post', auth='netrc',
+                 timeout=(3.05, 300), headers=None):
         self.results = None
         self.route = route
         self.params = params
         self.request_type = request_type
         self.timeout = timeout
+        self.headers = headers if headers is not None else {}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
-                            400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout'}
+                            400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
+                            422: 'Unprocessable Entity'}
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
@@ -77,6 +80,14 @@ class BrainInteraction(object):
         elif authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
 
+    def _get_json_data(self, response):
+        ''' Try to extract any json data '''
+        try:
+            json = response.json()
+        except ValueError as e:
+            json = None
+        return json
+
     def _checkResponse(self, response):
         ''' Checks the response for proper http status code '''
 
@@ -88,6 +99,7 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
+            json = self._get_json_data(response)
             if self.status_code == 401:
                 if self.authtype == 'netrc':
                     msg = 'Please create or check credentials in your local .netrc file'
@@ -97,9 +109,12 @@ class BrainInteraction(object):
                     msg = 'Please check your http/digest authentication'
                 self._closeRequestSession()
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
+            elif self.status_code == 422:
+                self._closeRequestSession()
+                raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json))
             else:
                 self._closeRequestSession()
-                raise BrainError('Requests Http Status Error: {0}'.format(http))
+                raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, json['api_error']['traceback']))
         else:
             # Not bad
             assert isbad is None, 'Http status code should not be bad'
@@ -110,12 +125,11 @@ class BrainInteraction(object):
             #     raise BrainError('test error is now raised here')
 
             self.status_code = response.status_code
-            try:
-                self.results = response.json()
-            except ValueError as e:
+            self.results = self._get_json_data(response)
+            if not self.results:
                 self.results = response.text
                 self._closeRequestSession()
-                raise BrainError('Response not in JSON format. {0} {1}'.format(e, self.results))
+                raise BrainError('Response not in JSON format. {0}'.format(self.results))
 
             # Raises an error if status is -1
             if 'status' in self.results and self.results['status'] == -1:
@@ -135,13 +149,12 @@ class BrainInteraction(object):
 
         # Loads the local config parameters
         self._loadConfigParams()
-
         # Send the request
         try:
             if request_type == 'get':
-                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout)
+                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout, headers=self.headers)
             elif request_type == 'post':
-                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout)
+                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout, headers=self.headers)
         except requests.Timeout as rt:
             self._closeRequestSession()
             raise BrainError('Requests Timeout Error: {0}'.format(rt))
@@ -179,7 +192,6 @@ class BrainInteraction(object):
 
     def _loadConfigParams(self):
         """Load the local configuration into a parameters dictionary to be sent with the request"""
-        print('brain load config params')
         self.params.update({'session_id': bconfig.session_id})
 
     def getRouteMap(self):
