@@ -123,11 +123,17 @@ class BrainLogger(Logger):
 
         self.warning(message, extra={'origin': mod_name or ''})
 
-    def warning(self, message, extra=None):
+    def warning(self, message, *args, **kwargs):
 
+        # if there are args then we have old style formating
+        if args:
+            message = message % args
+
+        # check for the extra keyword in kwargs
+        extra = kwargs.get('extra', None)
         if extra is None:
             extra = {'origin': ''}
-
+        print('message', message)
         super(BrainLogger, self).warning(message, extra=extra)
 
     def _stream_formatter(self, record):
