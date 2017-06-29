@@ -133,7 +133,7 @@ class BrainLogger(Logger):
         extra = kwargs.get('extra', None)
         if extra is None:
             extra = {'origin': ''}
-        print('message', message)
+
         super(BrainLogger, self).warning(message, extra=extra)
 
     def _stream_formatter(self, record):
