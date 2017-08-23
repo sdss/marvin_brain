@@ -22,6 +22,7 @@ class BrainInteraction(object):
     def __init__(self, route, params=None, request_type='post', auth='netrc',
                  timeout=(3.05, 300), headers=None):
         self.results = None
+        self.response_time = None
         self.route = route
         self.params = params
         self.request_type = request_type
@@ -30,7 +31,7 @@ class BrainInteraction(object):
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
-                            422: 'Unprocessable Entity'}
+                            422: 'Unprocessable Entity', 429: 'Rate Limit Exceeded'}
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
@@ -114,7 +115,9 @@ class BrainInteraction(object):
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json))
             else:
                 self._closeRequestSession()
-                raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, json['api_error']['traceback']))
+                apijson = json['api_error']
+                errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
         else:
             # Not bad
             assert isbad is None, 'Http status code should not be bad'
@@ -126,6 +129,7 @@ class BrainInteraction(object):
 
             self.status_code = response.status_code
             self.results = self._get_json_data(response)
+            self.response_time = response.elapsed
             if not self.results:
                 self.results = response.text
                 self._closeRequestSession()
