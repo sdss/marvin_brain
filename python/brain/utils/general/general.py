@@ -29,11 +29,16 @@ def getDbMachine():
     # Check if sas-vm or not
     sasvm = 'sas-vm' in machine if machine else None
 
+    # Check if jhu or not
+    jhu = 'jhu' in machine if machine else None
+
     # Set the dbconfig variable
     if localhost:
         return 'local'
     elif utah or sasvm:
         return 'utah'
+    elif jhu:
+        return 'jhu'
     else:
         return None
 
@@ -41,10 +46,9 @@ def getDbMachine():
 def convertIvarToErr(ivar):
     ''' Converts a list of inverse variance into an a list of standard errors '''
 
-    assert type(ivar) == list or type(ivar) == np.ndarray, \
-        'Input ivar is not of type list or an Numpy ndarray'
+    assert isinstance(ivar, (list, np.ndarray)), 'Input ivar is not of type list or an Numpy ndarray'
 
-    if type(ivar) == list:
+    if isinstance(ivar, list):
         ivar = np.array(ivar)
 
     error = np.zeros(ivar.shape)
