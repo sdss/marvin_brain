@@ -1,6 +1,7 @@
 from __future__ import print_function
 import os
 import requests
+import json
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.core.core import URLMapDict
@@ -20,13 +21,14 @@ class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
     def __init__(self, route, params=None, request_type='post', auth='netrc',
-                 timeout=(3.05, 300), headers=None):
+                 timeout=(3.05, 300), headers=None, stream=None):
         self.results = None
         self.response_time = None
         self.route = route
         self.params = params
         self.request_type = request_type
         self.timeout = timeout
+        self.stream = stream
         self.headers = headers if headers is not None else {}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
@@ -81,13 +83,24 @@ class BrainInteraction(object):
         elif authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
 
-    def _get_json_data(self, response):
+    def _get_json(self, response):
         ''' Try to extract any json data '''
         try:
             json = response.json()
         except ValueError as e:
             json = None
         return json
+
+    def _get_json_data(self, response, chunksize=512):
+        ''' Try to extract json data from a stream or using json() '''
+
+        if self.stream:
+            resstring = ''.join([chunk for chunk in response.iter_content(chunk_size=chunksize)])
+            json_data = json.loads(resstring.decode())
+        else:
+            json_data = self._get_json(response)
+
+        return json_data
 
     def _checkResponse(self, response):
         ''' Checks the response for proper http status code '''
@@ -100,7 +113,7 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
-            json = self._get_json_data(response)
+            json_data = self._get_json_data(response)
             if self.status_code == 401:
                 if self.authtype == 'netrc':
                     msg = 'Please create or check credentials in your local .netrc file'
@@ -112,10 +125,10 @@ class BrainInteraction(object):
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
             elif self.status_code == 422:
                 self._closeRequestSession()
-                raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json))
+                raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
             else:
                 self._closeRequestSession()
-                apijson = json['api_error']
+                apijson = json_data['api_error']
                 errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
                 raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
         else:
@@ -156,12 +169,15 @@ class BrainInteraction(object):
         # Send the request
         try:
             if request_type == 'get':
-                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout, headers=self.headers)
+                self._response = self.session.get(self.url, params=self.params, timeout=self.timeout,
+                                                  headers=self.headers, stream=self.stream)
             elif request_type == 'post':
-                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout, headers=self.headers)
+                self._response = self.session.post(self.url, data=self.params, timeout=self.timeout,
+                                                   headers=self.headers, stream=self.stream)
         except requests.Timeout as rt:
             self._closeRequestSession()
-            raise BrainError('Requests Timeout Error: {0}'.format(rt))
+            errmsg = 'Your request took longer than 5 minutes and timed out. Please try again or simplify your request.'
+            raise BrainError('Requests Timeout Error: {0}\n{1}'.format(rt, errmsg))
         except requests.URLRequired as urlreq:
             self._closeRequestSession()
             raise BrainError('Requests Valid URL Required: {0}'.format(urlreq))
