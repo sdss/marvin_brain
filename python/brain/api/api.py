@@ -2,6 +2,9 @@ from __future__ import print_function
 import os
 import requests
 import json
+import msgpack
+import msgpack_numpy as m
+m.patch()
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.core.core import URLMapDict
@@ -102,6 +105,25 @@ class BrainInteraction(object):
 
         return json_data
 
+    def _get_binary_data(self, response):
+        ''' Get binary data from msgpack '''
+
+        unpacked = msgpack.unpackb(response.content, raw=False)
+        return unpacked
+
+    def _get_content(self, response):
+        ''' Get the response content '''
+
+        content_type = response.headers['Content-Type']
+        if 'json' in content_type:
+            data = self._get_json_data(response)
+        elif 'octet-stream' in content_type:
+            data = self._get_binary_data(response)
+        else:
+            data = response.content
+
+        return data
+
     def _checkResponse(self, response):
         ''' Checks the response for proper http status code '''
 
@@ -113,7 +135,8 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
-            json_data = self._get_json_data(response)
+            #json_data = self._get_json_data(response)
+            json_data = self._get_content(response)
             if self.status_code == 401:
                 if self.authtype == 'netrc':
                     msg = 'Please create or check credentials in your local .netrc file'
@@ -141,7 +164,8 @@ class BrainInteraction(object):
             #     raise BrainError('test error is now raised here')
 
             self.status_code = response.status_code
-            self.results = self._get_json_data(response)
+            #self.results = self._get_json_data(response)
+            self.results = self._get_content(response)
             self.response_time = response.elapsed
             if not self.results:
                 self.results = response.text

@@ -16,7 +16,7 @@ Revision history:
 
 from __future__ import division
 from __future__ import print_function
-from flask_classy import route
+from flask_classful import route
 from brain.api.base import BrainBaseView
 from brain.core.exceptions import BrainError
 from flask import url_for, current_app, jsonify
