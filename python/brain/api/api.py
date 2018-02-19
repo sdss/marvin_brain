@@ -4,7 +4,6 @@ import requests
 import json
 import msgpack
 import msgpack_numpy as m
-m.patch()
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.core.core import URLMapDict
@@ -17,6 +16,7 @@ try:
 except ImportError:
     cache = None
 
+m.patch()
 configkeys = []
 
 
@@ -94,7 +94,7 @@ class BrainInteraction(object):
             json = None
         return json
 
-    def _get_json_data(self, response, chunksize=512):
+    def _get_json_data(self, response, chunksize=None):
         ''' Try to extract json data from a stream or using json() '''
 
         if self.stream:
@@ -105,10 +105,14 @@ class BrainInteraction(object):
 
         return json_data
 
-    def _get_binary_data(self, response):
+    def _get_binary_data(self, response, chunksize=None):
         ''' Get binary data from msgpack '''
 
-        unpacked = msgpack.unpackb(response.content, raw=False)
+        if self.stream:
+            resstring = ''.join([chunk for chunk in response.iter_content(chunk_size=chunksize)])
+            unpacked = msgpack.unpackb(resstring, raw=False)
+        else:
+            unpacked = msgpack.unpackb(response.content, raw=False)
         return unpacked
 
     def _get_content(self, response):
@@ -135,7 +139,6 @@ class BrainInteraction(object):
             errmsg = 'Error accessing {0}: {1}-{2}'.format(response.url, response.status_code,
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
-            #json_data = self._get_json_data(response)
             json_data = self._get_content(response)
             if self.status_code == 401:
                 if self.authtype == 'netrc':
@@ -164,7 +167,6 @@ class BrainInteraction(object):
             #     raise BrainError('test error is now raised here')
 
             self.status_code = response.status_code
-            #self.results = self._get_json_data(response)
             self.results = self._get_content(response)
             self.response_time = response.elapsed
             if not self.results:
