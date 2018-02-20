@@ -48,7 +48,7 @@ def processRequest(request=None, as_dict=None, param=None):
 
     # convert ImmutableMultiDict to dictionary (if get or post-form) or use dict if post-json
     if as_dict:
-        if type(data) == dict:
+        if isinstance(data, dict):
             form = data
         else:
             # use multidict lists and iterlists to group multiple values for same in key into list

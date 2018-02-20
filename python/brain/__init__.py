@@ -20,6 +20,8 @@ class BrainConfig(object):
         self.session_id = None
         self.request_session = None
         self.traceback = None
+        self._compression = 'json'
+        self._compression_types = ['json', 'msgpack']
 
     @property
     def mode(self):
@@ -31,5 +33,16 @@ class BrainConfig(object):
             self._mode = value
         else:
             raise ValueError('config.mode must be "local" or "remote".')
+
+    @property
+    def compression(self):
+        return self._compression
+
+    @compression.setter
+    def compression(self, value):
+        if value in self._compression_types:
+            self._compression = value
+        else:
+            raise ValueError('config.compression must be one of {0}.'.format(self._compression_types))
 
 bconfig = BrainConfig()

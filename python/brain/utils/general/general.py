@@ -1,11 +1,15 @@
-import numpy as np
 import os
 import decimal
 import datetime
+import numpy as np
+import json
+from brain import bconfig
+from brain.core.exceptions import BrainError, BrainWarning
+
 
 # General utilities
 
-__all__ = []
+__all__ = ['getDbMachine', 'convertIvarToErr', 'compress_data', 'uncompress_data']
 
 
 def getDbMachine():
@@ -64,3 +68,98 @@ def alchemyencoder(obj):
         return obj.isoformat()
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
+
+
+def _compress_json(data, uncompress=None):
+    ''' Compress/Uncompress JSON data '''
+
+    try:
+        if uncompress:
+            comp_data = json.loads(data)
+        else:
+            comp_data = json.dumps(data)
+    except Exception as e:
+        raise BrainError('Cannot (un)compress JSON data. {0}'.format(e))
+    else:
+        return comp_data
+
+
+def _compress_msgpack(data, uncompress=None):
+    ''' Compress/Uncompress msgpack data '''
+
+    # import the package
+    try:
+        import msgpack
+        import msgpack_numpy as m
+    except ImportError as e:
+        compress_with = 'json'
+        raise BrainWarning('Must have Python packages msgpack and msgpack_numpy '
+                           'installed to use msgpack compression.  Defaulting to json')
+    else:
+        m.patch()
+
+    # do the compression
+    try:
+        if uncompress:
+            comp_data = msgpack.unpackb(data, raw=False)
+        else:
+            comp_data = msgpack.packb(data, use_bin_type=True)
+    except Exception as e:
+        raise BrainError('Cannot (un)compress msgpack data. {0}'.format(e))
+    else:
+        return comp_data
+
+
+def compress_data(data, compress_with=None, uncompress=None):
+    ''' Compress data via json or msgpack
+
+    Parameters:
+        data (obj)
+            The input data to compress or uncompress
+        compress_with (str):
+            Compression algorithm.  Defaults to config.compression.
+        uncompress (bool):
+            If True, uncompresses the data instead of compressing.  Default is False
+
+    Returns:
+        Data compressed with with json or msgpack
+    '''
+
+    # check compression
+    if not compress_with:
+        compress_with = bconfig.compression
+        if compress_with == 'msgpack':
+            try:
+                import msgpack
+            except ImportError as e:
+                compress_with = 'json'
+                raise BrainWarning('Must have Python packages msgpack and msgpack_numpy '
+                                   'installed to use msgpack compression.  Defaulting to json')
+
+    assert compress_with in bconfig._compression_types, 'compress_with must be one of {0}'.format(bconfig._compression_types)
+
+    # compress the data
+    if compress_with == 'json':
+        comp_data = _compress_json(data, uncompress=uncompress)
+    elif compress_with == 'msgpack':
+        comp_data = _compress_msgpack(data, uncompress=uncompress)
+    else:
+        raise BrainError('Unrecognized compression algorithm {0}'.format(compress_with))
+
+    return comp_data
+
+
+def uncompress_data(data, uncompress_with=None):
+    ''' Compress data via json or msgpack
+
+    Parameters:
+        data (obj)
+            The data to compress
+        uncompress_with (str):
+            Compression algorithm.  Defaults to config.compression.
+
+    Returns:
+        Data compressed with with json or msgpack
+    '''
+
+    return compress_data(data, compress_with=uncompress_with, uncompress=True)
