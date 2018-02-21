@@ -1,9 +1,6 @@
 from __future__ import print_function
 import os
 import requests
-import json
-import msgpack
-import msgpack_numpy as m
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.utils.general import uncompress_data
@@ -17,7 +14,6 @@ try:
 except ImportError:
     cache = None
 
-m.patch()
 configkeys = []
 
 
@@ -39,8 +35,8 @@ class BrainInteraction(object):
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
                             422: 'Unprocessable Entity', 429: 'Rate Limit Exceeded'}
-        self.compression = self.params['compression'] if 'compression' in self.params \
-                                else bconfig.compression
+        self.compression = self.params['compression'] if self.params and \
+            'compression' in self.params else bconfig.compression
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
