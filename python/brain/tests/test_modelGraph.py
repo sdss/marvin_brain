@@ -22,6 +22,9 @@ from sdss.internal.database.DatabaseConnection import DatabaseConnection
 
 import unittest
 
+#
+#  TODO: rewrite in pytest
+#
 
 # Assumes there is a local database named manga with mangadatadb and mangasampledb schemas.
 
