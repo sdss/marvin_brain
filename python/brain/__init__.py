@@ -9,6 +9,9 @@
 from __future__ import division
 from __future__ import print_function
 import os
+import netrc
+import warnings
+from brain.core.exceptions import BrainError, BrainUserWarning
 
 
 class BrainConfig(object):
@@ -22,6 +25,12 @@ class BrainConfig(object):
         self.traceback = None
         self._compression = 'json'
         self._compression_types = ['json', 'msgpack']
+        self._access = 'public'
+        self._access_types = ['public', 'collab']
+        self._netrc_path = os.path.join(os.environ['HOME'], '.netrc')
+        self._netrc = None
+        self.hosts = ['data.sdss.org', 'api.sdss.org']
+        self._valid_hosts = dict.fromkeys(self.hosts)
 
     @property
     def mode(self):
@@ -44,5 +53,73 @@ class BrainConfig(object):
             self._compression = value
         else:
             raise ValueError('config.compression must be one of {0}.'.format(self._compression_types))
+
+    @property
+    def access(self):
+        return self._access
+
+    @access.setter
+    def access(self, value):
+        if value in self._access_types:
+            if value == 'collab':
+                if not self._check_netrc():
+                    warnings.warn('You do not have a valid netrc file.  Setting access to public!', BrainUserWarning)
+                    value = 'public'
+            self._access = value
+        else:
+            raise ValueError('config.access must be one of {0}.'.format(self._access_types))
+
+    @property
+    def has_netrc(self):
+        return self._check_netrc()
+
+    def _check_host(self, host, netfile, msg=None):
+        ''' Check for a valid host in the netrc '''
+
+        if host in netfile.hosts:
+            self._valid_hosts[host] = True
+        else:
+            self._valid_hosts[host] = False
+            basemsg = '{0} not found in netrc. '.format(host)
+            if not msg:
+                msg = ('{0} You will not have access '
+                       'to SDSS data from {1}'.format(basemsg, host))
+            else:
+                msg = basemsg + msg
+
+            warnings.warn(msg, BrainUserWarning)
+
+    def _check_all_hosts(self, netfile=None):
+        ''' Check all the hosts in the netrc file '''
+
+        if not netfile:
+            netfile = netrc.netrc(self._netrc_path)
+
+        for host in self.hosts:
+            self._check_host(host, netfile)
+
+        # validate if any are good
+        return any(self._valid_hosts.values())
+
+    def _check_netrc(self):
+        """Makes sure there is a valid netrc."""
+
+        if not os.path.exists(self._netrc_path):
+            raise BrainError('No .netrc file found in your HOME directory!')
+        else:
+            if oct(os.stat(self._netrc_path).st_mode)[-3:] != '600':
+                raise BrainError('your .netrc file does not have 600 permissions. Please fix it by '
+                                 'running chmod 600 ~/.netrc. Authentication will not work with '
+                                 'permissions different from 600.')
+
+            # read the netrc file
+            netfile = netrc.netrc(self._netrc_path)
+
+            # check the hosts
+            self._check_host('data.sdss.org', netfile, msg='You will not be able to download SDSS data')
+            self._check_host('api.sdss.org', netfile, msg='You will not have remote access to SDSS data')
+
+            # validate if any are good
+            return any(self._valid_hosts.values())
 
 bconfig = BrainConfig()
