@@ -98,8 +98,8 @@ class BrainInteraction(object):
         ''' Try to extract json data from a stream or using json() '''
 
         if self.stream:
-            resstring = ''.join([chunk for chunk in response.iter_content(chunk_size=chunksize)])
-            json_data = json.loads(resstring.decode())
+            resstring = ''.join([bytes.decode(chunk) for chunk in response.iter_content(chunk_size=chunksize)])
+            json_data = json.loads(resstring)
         else:
             json_data = self._get_json(response)
 
