@@ -156,7 +156,7 @@ class BrainInteraction(object):
         '''
 
         if self.stream:
-            resstring = ''.join([chunk for chunk in response.iter_content(chunk_size=chunksize)])
+            resstring = ''.join([bytes.decode(chunk) for chunk in response.iter_content(chunk_size=chunksize)])
             data = self._decode_stream(resstring)
         else:
             if dtype == 'json':
