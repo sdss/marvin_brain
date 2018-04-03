@@ -27,7 +27,7 @@ class BrainConfig(object):
         self._compression_types = ['json', 'msgpack']
         self._access = 'public'
         self._access_types = ['public', 'collab']
-        self._netrc_path = os.path.join(os.environ['HOME'], '.netrc')
+        self._netrc_path = os.path.join(os.path.expanduser('~'), '.netrc')
         self._netrc = None
         self.hosts = ['data.sdss.org', 'api.sdss.org']
         self._valid_hosts = dict.fromkeys(self.hosts)
