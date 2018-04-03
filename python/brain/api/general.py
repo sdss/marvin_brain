@@ -62,7 +62,7 @@ class BrainGeneralRequestsView(BrainBaseView):
 
         .. sourcecode:: http
 
-           GET /marvin2/api/general/getroutemap/ HTTP/1.1
+           GET /marvin/api/general/getroutemap/ HTTP/1.1
            Host: api.sdss.org
            Accept: application/json, */*
 
