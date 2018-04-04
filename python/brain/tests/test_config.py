@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-02-19 23:37:21
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-04-03 18:05:10
+# @Last Modified time: 2018-04-04 11:49:20
 
 from __future__ import print_function, division, absolute_import
 import pytest
@@ -76,14 +76,6 @@ class TestVars(object):
 
 class TestNetrc(object):
     ''' test the netrc access '''
-
-    def write(self, host):
-
-        netstr = 'machine {0}\n'.format(host)
-        netstr += '    login test\n'
-        netstr += '    password test\n'
-        netstr += '\n'
-        return netstr
 
     def test_no_netrc(self, netrc):
         with pytest.raises(BrainError) as cm:
