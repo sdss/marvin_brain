@@ -9,7 +9,7 @@ from brain.core.exceptions import BrainError, BrainWarning
 
 # General utilities
 
-__all__ = ['getDbMachine', 'convertIvarToErr', 'compress_data', 'uncompress_data']
+__all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data', 'uncompress_data']
 
 
 def getDbMachine():
@@ -45,6 +45,31 @@ def getDbMachine():
         return 'jhu'
     else:
         return None
+
+
+def merge(user, default):
+    """Merges a user configuration with the default one.
+
+    Merges two dictionaries, replacing default values
+    of similar matching keys from user.
+
+    Parameters:
+        user (dict):
+            A user defined dictionary
+        default (dict):
+
+    Returns:
+        A new merged dictionary
+    """
+
+    if isinstance(user, dict) and isinstance(default, dict):
+        for kk, vv in default.items():
+            if kk not in user:
+                user[kk] = vv
+            else:
+                user[kk] = merge(user[kk], vv)
+
+    return user
 
 
 def convertIvarToErr(ivar):
