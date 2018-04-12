@@ -33,6 +33,9 @@ def getDbMachine():
     # Check if sas-vm or not
     sasvm = 'sas-vm' in machine if machine else None
 
+    # Check if lore or not
+    lore = 'lore' in machine if machine else None
+
     # Check if jhu or not
     jhu = 'jhu' in machine if machine else None
 
@@ -41,6 +44,8 @@ def getDbMachine():
         return 'local'
     elif utah or sasvm:
         return 'utah'
+    elif lore:
+        return 'lore'
     elif jhu:
         return 'jhu'
     else:
