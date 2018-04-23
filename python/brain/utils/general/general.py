@@ -6,10 +6,19 @@ import json
 from brain import bconfig
 from brain.core.exceptions import BrainError, BrainWarning
 
+try:
+    from inspection.marvin import Inspection
+except ImportError as e:
+    from brain.core.inspection import Inspection
+
+from hashlib import md5
+from passlib.apache import HtpasswdFile
 
 # General utilities
 
-__all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data', 'uncompress_data']
+__all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data',
+           'uncompress_data', 'inspection_authenticate', 'validate_user',
+           'get_db_user']
 
 
 def getDbMachine():
@@ -193,3 +202,70 @@ def uncompress_data(data, uncompress_with=None):
     '''
 
     return compress_data(data, compress_with=uncompress_with, uncompress=True)
+
+
+def inspection_authenticate(session, username=None, password=None):
+    ''' Authenticate with Trac using Inspection '''
+
+    auth = md5("{0}:AS3Trac:{1}".format(username, password).encode('utf-8')).hexdigest() if username and password else None
+    result = {'is_valid': False}
+    try:
+        inspection = Inspection(session, username=username, auth=auth)
+    except Exception as e:
+        result['status'] = -1
+        result['message'] = str(e)
+    else:
+        result = inspection.result()
+        result['is_valid'] = inspection.ready
+    return result
+
+
+def validate_user(username, password, htpassfile=None, session={}, request=None):
+    ''' Validate the User with htpassfile or Trac '''
+
+    result = {}
+
+    # validate the user with htpassfile or trac username
+    is_valid = False
+    user = None
+    if not htpassfile and request:
+        htpassfile = request.environ.get('HTPASSFILE', None)
+
+    if username == 'sdss':
+        if htpassfile:
+            htpass = HtpasswdFile(htpassfile)
+            is_valid = htpass.check_password(username, password)
+            user = username
+        else:
+            result['error'] = 'No valid htpasswd file found!'
+    else:
+        result = inspection_authenticate(session, username=username, password=password)
+        is_valid = result['is_valid']
+        user = result.get('membername', None)
+
+    return is_valid, user, result
+
+
+def get_db_user(username, password, dbsession=None, user_model=None, request=None):
+    ''' Get a User from a database session '''
+
+    if not dbsession:
+        return None
+
+    if user_model:
+        assert hasattr(user_model, 'set_password'), 'User Model must have the set_password method!'
+        assert hasattr(user_model, 'check_password'), 'User Model must have the check_password method!'
+
+    user = dbsession.query(user_model).filter(user_model.username == username).one_or_none()
+    with dbsession.begin():
+        if not user:
+            # add new user
+            user = user_model(username=username, login_count=1)
+            user.set_password(password)
+            dbsession.add(user)
+        else:
+            user.update_stats(request=request)
+
+    return user
+
+

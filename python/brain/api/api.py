@@ -1,5 +1,4 @@
 from __future__ import print_function
-import os
 import requests
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
@@ -20,7 +19,7 @@ configkeys = []
 class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
-    def __init__(self, route, params=None, request_type='post', auth='netrc',
+    def __init__(self, route, params=None, request_type='post', auth='token',
                  timeout=(3.05, 300), headers=None, stream=None, datastream=None):
         self.results = None
         self.response_time = None
@@ -85,6 +84,9 @@ class BrainInteraction(object):
             self.session.auth = auth
         elif authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
+        elif authtype == 'token':
+            assert bconfig.token is not None, 'You must have a valid token set to use the API.  Please login.'
+            self.headers.update({'Authorization': 'Bearer {0}'.format(bconfig.token)})
 
     def _decode_stream(self, content):
         ''' Decode the content string for a data stream
@@ -209,6 +211,10 @@ class BrainInteraction(object):
                     msg = 'Please check your Oauth authentication'
                 elif self.authtype == 'http':
                     msg = 'Please check your http/digest authentication'
+                elif self.authtype == 'token':
+                    msg = '{0}. Please check your token or login again for a fresh one.'.format(json_data['msg'])
+                else:
+                    msg = 'Please check your authentication method.'
                 self._closeRequestSession()
                 raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
             elif self.status_code == 422:

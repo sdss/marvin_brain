@@ -12,7 +12,8 @@ Revision History:
 from __future__ import print_function
 from __future__ import division
 from flask_classful import FlaskView
-from flask import request
+from flask import request, current_app
+from flask_jwt_extended import get_jwt_identity
 from brain import bconfig
 from brain.core.exceptions import BrainError
 
@@ -96,7 +97,7 @@ class BrainBaseView(FlaskView):
         self.add_config()
 
         # check API Authentication
-        # self._checkAuth()
+        self._checkAuth()
 
     def after_request(self, name, response):
         """This performs a reset of the results dict after every request method runs.
@@ -107,19 +108,18 @@ class BrainBaseView(FlaskView):
         return response
 
     def _checkAuth(self):
-        ''' Checks the API for authentication '''
+        ''' Checks the API for authentication
 
-        print('api inconfig', self.results['inconfig'])
-        if 'session_id' in self.results['inconfig']:
-            session_id = self.results['inconfig'].get('session_id', None)
-            # check for valid session_id
-            if session_id is not None:
-                # check if expired
-                pass
-            elif session_id is None or isexpired:
-                # get new
-                pass
-        else:
-            pass
-            #raise BrainError('API session id not found in incoming request parameters')
+        Main user and token authentication take care of in each request.
+        See decorators applied to marvin.api.base
+        '''
+
+        # don't check authentication for these public decorated routes
+        ispublic = getattr(current_app.view_functions[request.endpoint], 'is_public', False)
+        if ispublic:
+            return
+
+        if 'Authorization' not in request.headers:
+            raise BrainError('Authorization is required to access!')
+
 

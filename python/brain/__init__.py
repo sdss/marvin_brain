@@ -31,6 +31,7 @@ class BrainConfig(object):
         self._netrc = None
         self.hosts = ['data.sdss.org', 'api.sdss.org']
         self._valid_hosts = dict.fromkeys(self.hosts)
+        self.token = None
 
     @property
     def mode(self):
@@ -121,5 +122,18 @@ class BrainConfig(object):
 
             # validate if any are good
             return any(self._valid_hosts.values())
+
+    def _read_netrc(self, host):
+        ''' Read the netrc file for a given host '''
+
+        if not self._check_netrc():
+            raise BrainError('netrc did not pass checks.  Cannot read!')
+
+        assert host in self._valid_hosts and self._valid_hosts[host], '{0} must be a valid host in the netrc'.format(host)
+
+        netfile = netrc.netrc(self._netrc_path)
+        user, acct, passwd = netfile.authenticators(host)
+        return user, passwd
+
 
 bconfig = BrainConfig()

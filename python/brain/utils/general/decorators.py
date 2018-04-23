@@ -9,7 +9,13 @@ except ImportError:
     Path = None
 
 # General Decorators
-__all__ = ['parseRoutePath', 'checkPath']
+__all__ = ['public', 'parseRoutePath', 'checkPath']
+
+
+def public(f):
+    ''' Decorator to declare a route public '''
+    f.is_public = True
+    return f
 
 
 def parseRoutePath(f):
