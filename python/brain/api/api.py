@@ -74,6 +74,13 @@ class BrainInteraction(object):
 
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
+
+        # check access and authentication
+        if bconfig.access == 'public':
+            authtype = None
+        elif bconfig.access == 'collab':
+            assert authtype is not None, 'Must have an authorization type set for collab access!'
+
         self.authtype = authtype
         if authtype == 'netrc':
             # do nothing since this is default with no auth set

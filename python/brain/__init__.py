@@ -18,7 +18,9 @@ class BrainConfig(object):
 
     def __init__(self):
 
-        self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else 'https://sas.sdss.org/'
+        self._public_api_url = 'https://dr15.sdss.org'
+        self._collab_api_url = 'https://api.sdss.org'
+        self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
         self._mode = 'auto'
         self.session_id = None
         self.request_session = None
@@ -32,6 +34,14 @@ class BrainConfig(object):
         self.hosts = ['data.sdss.org', 'api.sdss.org']
         self._valid_hosts = dict.fromkeys(self.hosts)
         self.token = None
+
+    @property
+    def public_api_url(self):
+        return self._public_api_url
+
+    @property
+    def collab_api_url(self):
+        return self._collab_api_url
 
     @property
     def mode(self):

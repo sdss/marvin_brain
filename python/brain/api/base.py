@@ -13,7 +13,6 @@ from __future__ import print_function
 from __future__ import division
 from flask_classful import FlaskView
 from flask import request, current_app
-from flask_jwt_extended import get_jwt_identity
 from brain import bconfig
 from brain.core.exceptions import BrainError
 
