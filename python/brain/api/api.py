@@ -224,8 +224,12 @@ class BrainInteraction(object):
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
             else:
                 self._closeRequestSession()
-                apijson = json_data['api_error']
-                errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                if 'api_error' in json_data:
+                    apijson = json_data['api_error']
+                    errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                elif 'error' in json_data:
+                    err = json_data['error']
+                    errmsg = '{0}'.format(err)
                 raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
         else:
             # Not bad
