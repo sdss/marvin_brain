@@ -11,7 +11,9 @@ from __future__ import print_function
 import os
 import netrc
 import warnings
+import yaml
 from brain.core.exceptions import BrainError, BrainUserWarning
+from brain.utils.general.general import merge
 
 
 class BrainConfig(object):
@@ -34,6 +36,9 @@ class BrainConfig(object):
         self.hosts = ['data.sdss.org', 'api.sdss.org']
         self._valid_hosts = dict.fromkeys(self.hosts)
         self.token = None
+
+        self._load_defaults()
+        self._check_paths()
 
     @property
     def public_api_url(self):
@@ -83,6 +88,29 @@ class BrainConfig(object):
     @property
     def has_netrc(self):
         return self._check_netrc()
+
+    def _load_defaults(self):
+        ''' Load the Brain config yaml file '''
+
+        config = yaml.load(open(os.path.join(os.path.dirname(__file__), 'data/brain.yml')))
+        user_config_path = os.path.expanduser('~/.brain/brain.yml')
+        if os.path.exists(user_config_path):
+            config = merge(yaml.load(open(user_config_path)), config)
+
+        # update any matching Config values
+        for key, value in config.items():
+            if hasattr(self, key):
+                self.__setattr__(key, value)
+
+        self._custom_config = config
+
+    def _check_paths(self):
+        ''' Check the paths in the custom config '''
+
+        if 'netrc_path' in self._custom_config:
+            self._netrc_path = os.path.expanduser(self._custom_config['netrc_path'])
+        if 'htpass_path' in self._custom_config:
+            self._htpass_path = self._custom_config['htpass_path']
 
     def _check_host(self, host, netfile, msg=None):
         ''' Check for a valid host in the netrc '''

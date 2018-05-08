@@ -217,8 +217,9 @@ class BrainInteraction(object):
                     msg = '{0}. Please check your token or login again for a fresh one.'.format(json_data['msg'])
                 else:
                     msg = 'Please check your authentication method.'
+                errmsg = json_data['error'] if 'error' in json_data else ''
                 self._closeRequestSession()
-                raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
+                raise BrainApiAuthError('API Authentication Error: {0}. {1}'.format(msg, errmsg))
             elif self.status_code == 422:
                 self._closeRequestSession()
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))

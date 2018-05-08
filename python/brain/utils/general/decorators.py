@@ -1,7 +1,6 @@
 
 from functools import wraps
 from brain.core.exceptions import BrainError
-from brain import bconfig
 
 try:
     from sdss_access.path import Path
@@ -67,6 +66,7 @@ def check_auth(func):
 
     '''
 
+    from brain import bconfig
     @wraps(func)
     def wrapper(*args, **kwargs):
         # iscollab = bconfig.access == 'collab'

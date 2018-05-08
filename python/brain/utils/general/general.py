@@ -3,7 +3,6 @@ import decimal
 import datetime
 import numpy as np
 import json
-from brain import bconfig
 from brain.core.exceptions import BrainError, BrainWarning
 
 try:
@@ -164,6 +163,7 @@ def compress_data(data, compress_with=None, uncompress=None):
         Data compressed with with json or msgpack
     '''
 
+    from brain import bconfig
     # check compression
     if not compress_with:
         compress_with = bconfig.compression
