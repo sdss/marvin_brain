@@ -109,8 +109,9 @@ class BrainConfig(object):
 
         if 'netrc_path' in self._custom_config:
             self._netrc_path = os.path.expanduser(self._custom_config['netrc_path'])
-        if 'htpass_path' in self._custom_config:
-            self._htpass_path = self._custom_config['htpass_path']
+        htpass_path = self._custom_config.get('htpass_path', None)
+        if htpass_path:
+            self._htpass_path = htpass_path
 
     def _check_host(self, host, netfile, msg=None):
         ''' Check for a valid host in the netrc '''

@@ -223,6 +223,7 @@ def inspection_authenticate(session, username=None, password=None):
 def validate_user(username, password, htpassfile=None, session={}, request=None):
     ''' Validate the User with htpassfile or Trac '''
 
+    from brain import bconfig
     result = {}
 
     # validate the user with htpassfile or trac username
@@ -230,6 +231,9 @@ def validate_user(username, password, htpassfile=None, session={}, request=None)
     user = None
     if not htpassfile and request:
         htpassfile = request.environ.get('HTPASSFILE', None)
+    elif not htpassfile and not request:
+        if hasattr(bconfig, '_htpass_path'):
+            htpassfile = bconfig._htpass_path
 
     if username == 'sdss':
         if htpassfile:
