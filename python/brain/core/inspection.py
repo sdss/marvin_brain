@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2016-09-28 22:39:08
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-05-23 14:27:12
+# @Last Modified time: 2018-05-23 14:31:17
 
 from __future__ import print_function, division, absolute_import
 
@@ -30,6 +30,7 @@ class Inspection:
             self.set_member(id=self.session['member_id'], update_session=False)
         if not self.ready:
             self.set_member(username=username, auth=auth)
+        self.ready = True
 
     def set_ready(self):
         ''' sets the Flask session to ready post login '''
