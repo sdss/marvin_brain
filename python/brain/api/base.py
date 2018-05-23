@@ -118,7 +118,7 @@ class BrainBaseView(FlaskView):
         if ispublic:
             return
 
-        # if 'Authorization' not in request.headers:
-        #     raise BrainError('Authorization is required to access!')
+        if 'Authorization' not in request.headers:
+            raise BrainError('Authorization is required to access!')
 
 

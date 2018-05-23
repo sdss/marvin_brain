@@ -229,12 +229,15 @@ def validate_user(username, password, htpassfile=None, session={}, request=None)
     # validate the user with htpassfile or trac username
     is_valid = False
     user = None
+    # try from request
     if not htpassfile and request:
         htpassfile = request.environ.get('HTPASSFILE', None)
-    elif not htpassfile and not request:
-        if hasattr(bconfig, '_htpass_path'):
-            htpassfile = bconfig._htpass_path
 
+    # try from brain config
+    if not htpassfile and hasattr(bconfig, '_htpass_path'):
+        htpassfile = bconfig._htpass_path
+
+    # validate user
     if username == 'sdss':
         if htpassfile:
             htpass = HtpasswdFile(htpassfile)
