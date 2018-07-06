@@ -6,17 +6,18 @@ The module is heavily based on the astropy logging system.
 
 from __future__ import print_function
 
-import os
-import sys
 import logging
+import os
+import re
+import shutil
+import sys
+import warnings
 from logging import FileHandler
 from logging.handlers import TimedRotatingFileHandler
-import warnings
-from brain.core.colourPrint import colourPrint
-import shutil
-import re
 from textwrap import TextWrapper
-from brain.core.exceptions import BrainError
+
+from brain.core.colourPrint import colourPrint
+from brain.core.exceptions import BrainError, BrainWarning
 
 
 # Initialize by calling initLog()
@@ -31,6 +32,7 @@ ansi_escape = re.compile(r'\x1b[^m]*m')
 
 def important(self, message, *args, **kws):
     self._log(IMPORTANT, message, args, **kws)
+
 
 logging.Logger.important = important
 
@@ -107,21 +109,40 @@ class BrainLogger(Logger):
     def saveLog(self, path):
         shutil.copyfile(self.logFilename, os.path.expanduser(path))
 
-    def _showwarning(self, *args, **kwargs):
+    def _warn(self, *args, **kwargs):
+        """Overrides `warnings.warn`
+
+        Before calling the original `warnings.warn` function it makes sure
+        the warning is redirected to the correct ``showwarning`` function.
+
+        """
+
+        if issubclass(kwargs['category'], BrainWarning):
+            self._show_warning(*args, **kwargs)
+        else:
+            warnings._showwarning_orig(*args, **kwargs)
+
+    def _show_warning(self, *args, **kwargs):
 
         warning = args[0]
+
         message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         mod_path = args[2]
 
         mod_name = None
-        mod_path, ext = os.path.splitext(mod_path)
-        for name, mod in list(sys.modules.items()):
-            path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-            if path == mod_path:
-                mod_name = mod.__name__
-                break
+        mod_path, __ = os.path.splitext(mod_path)
+        for __, mod in sys.modules.items():
+            mod_file = getattr(mod, '__file__', '')
+            if mod_file is not None:
+                path = os.path.splitext(mod_file)[0]
+                if path == mod_path:
+                    mod_name = mod.__name__
+                    break
 
-        self.warning(message, extra={'origin': mod_name or ''})
+        if mod_name is not None:
+            self.warning(message, extra={'origin': mod_name})
+        else:
+            self.warning(message, extra={'origin': 'no_module'})
 
     def warning(self, message, *args, **kwargs):
 
@@ -223,4 +244,3 @@ class BrainLogger(Logger):
         self.fh.setLevel(logFileLevel)
 
         self.logFilename = logFilePath
-        warnings.showwarning = self._showwarning
