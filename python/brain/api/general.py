@@ -18,13 +18,9 @@ from __future__ import division
 from __future__ import print_function
 from flask_classful import route
 from brain.api.base import BrainBaseView
-from brain.core.exceptions import BrainError
 from brain.utils.general.decorators import public
-from flask import url_for, current_app, jsonify
-try:
-    from urllib import unquote
-except ImportError:
-    from urllib.parse import unquote
+from brain.utils.general import build_routemap
+from flask import current_app, jsonify
 
 
 class BrainGeneralRequestsView(BrainBaseView):
@@ -87,29 +83,7 @@ class BrainGeneralRequestsView(BrainBaseView):
 
         """
 
-        output = {}
-        for rule in current_app.url_map.iter_rules():
-            # get options
-            options = {}
-            for arg in rule.arguments:
-                options[arg] = '[{0}]'.format(arg)
-            options['_external'] = False
-            # get endpoint
-            fullendpoint = rule.endpoint
-            esplit = fullendpoint.split('.')
-            grp, endpoint = esplit[0], None if len(esplit) == 1 else esplit[1]
-            output.setdefault(grp, {}).update({endpoint: {}})
-            # get methods
-            methods = ','.join(rule.methods)
-            output[grp][endpoint]['methods'] = methods
-            # build url
-            try:
-                rawurl = url_for(fullendpoint, **options)
-            except ValueError as e:
-                raise BrainError('Error generating url for {0}: {1}'.format(fullendpoint, e))
-            url = unquote(rawurl).replace('[', '{').replace(']', '}')
-            output[grp][endpoint]['url'] = url
-
+        output = build_routemap(current_app)
         res = {'urlmap': output, 'status': 1}
         self.update_results(res)
         return jsonify(self.results)

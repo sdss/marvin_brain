@@ -12,7 +12,7 @@ Revision History:
 from __future__ import print_function
 from __future__ import division
 from flask_classful import FlaskView
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from brain import bconfig
 from brain.core.exceptions import BrainError
 
@@ -96,7 +96,11 @@ class BrainBaseView(FlaskView):
         self.add_config()
 
         # check API Authentication
-        self._checkAuth()
+        try:
+            self._checkAuth()
+        except BrainError as e:
+            msg = 'Brain Authorization Error: {0}.  Check your token or netrc file'.format(e)
+            return jsonify({'error': msg, 'status': -1})
 
     def after_request(self, name, response):
         """This performs a reset of the results dict after every request method runs.

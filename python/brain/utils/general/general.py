@@ -4,20 +4,20 @@ import datetime
 import numpy as np
 import json
 from brain.core.exceptions import BrainError, BrainWarning
-
-try:
-    from inspection.marvin import Inspection
-except ImportError as e:
-    from brain.core.inspection import Inspection
-
 from hashlib import md5
 from passlib.apache import HtpasswdFile
+
+from flask import url_for
+try:
+    from urllib import unquote
+except ImportError:
+    from urllib.parse import unquote
 
 # General utilities
 
 __all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data',
            'uncompress_data', 'inspection_authenticate', 'validate_user',
-           'get_db_user']
+           'get_db_user', 'build_routemap']
 
 
 def getDbMachine():
@@ -207,6 +207,11 @@ def uncompress_data(data, uncompress_with=None):
 def inspection_authenticate(session, username=None, password=None):
     ''' Authenticate with Trac using Inspection '''
 
+    try:
+        from inspection.marvin import Inspection
+    except ImportError as e:
+        from brain.core.inspection import Inspection
+
     auth = md5("{0}:AS3Trac:{1}".format(username, password).encode('utf-8')).hexdigest() if username and password else None
     result = {'is_valid': False}
     try:
@@ -275,4 +280,49 @@ def get_db_user(username, password, dbsession=None, user_model=None, request=Non
 
     return user
 
+
+def build_routemap(app):
+    ''' Builds a Flask Web App's dictionary of routes
+
+    Constructs a dictionary containing all the routes defined
+    inside a given Flask Web App.  The route endpoints are deconstructed into
+    a set of nested dictionaries of the form [blueprint][endpoint], which
+    contains a methods and a url key.  The url key returns the full route path.
+
+    E.g. the API route to get a cube, which has a name "getCube" is expressed as
+    ['api']['getCube'].  To access the url, ['api']['getCube']['url'] returns
+    "/marvin/api/cubes/{name}/"
+
+    Parameters:
+        app (Flask Application):
+            The Flask app to extract routes from
+
+    Returns:
+        A dict of all routes
+    '''
+
+    output = {}
+    for rule in app.url_map.iter_rules():
+        # get options
+        options = {}
+        for arg in rule.arguments:
+            options[arg] = '[{0}]'.format(arg)
+        options['_external'] = False
+        # get endpoint
+        fullendpoint = rule.endpoint
+        esplit = fullendpoint.split('.')
+        grp, endpoint = esplit[0], None if len(esplit) == 1 else esplit[1]
+        output.setdefault(grp, {}).update({endpoint: {}})
+        # get methods
+        methods = ','.join(rule.methods)
+        output[grp][endpoint]['methods'] = methods
+        # build url
+        try:
+            rawurl = url_for(fullendpoint, **options)
+        except ValueError as e:
+            raise BrainError('Error generating url for {0}: {1}'.format(fullendpoint, e))
+        url = unquote(rawurl).replace('[', '{').replace(']', '}')
+        output[grp][endpoint]['url'] = url
+
+    return output
 

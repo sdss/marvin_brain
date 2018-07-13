@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2016-09-28 22:39:08
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-05-23 16:18:15
+# @Last Modified time: 2018-06-06 11:58:58
 
 from __future__ import print_function, division, absolute_import
 
@@ -47,9 +47,9 @@ class Inspection:
     def set_member(self, id=None, username=None, auth=None, add=False, update_session=True):
         ''' sets the trac user member '''
         if id is None:
-            id = 1 if (username, auth) == ('sdss', '43799f65a46144a0535ccea32fe2af34') else 0
+            id = 1 if (username, auth) == ('test', 'b3a32904f4d5977f0d41e97713b3c4c1') else 0
         elif id == 1:
-            username, auth = ('sdss', '43799f65a46144a0535ccea32fe2af34')
+            username, auth = ('test', 'b3a32904f4d5977f0d41e97713b3c4c1')
         if username and auth:
             self.member = {'id': int(id), 'username': username, 'auth': auth}
             fullname = "SDSS User" if id == 1 else "Unknown user"
