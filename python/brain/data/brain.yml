@@ -1,0 +1,8 @@
+# Default Brain config
+
+# path to netrc file
+netrc_path: '~/.netrc'
+
+# path to htpass file
+# htpass_path: None
+

@@ -8,7 +8,13 @@ except ImportError:
     Path = None
 
 # General Decorators
-__all__ = ['parseRoutePath', 'checkPath']
+__all__ = ['public', 'parseRoutePath', 'checkPath']
+
+
+def public(f):
+    ''' Decorator to declare a route public '''
+    f.is_public = True
+    return f
 
 
 def parseRoutePath(f):
@@ -36,3 +42,39 @@ def checkPath(func):
         else:
             return func(*args, **kwargs)
     return wrapper
+
+
+def check_auth(func):
+    ''' Decorator that checks if a valid netrc file exists
+
+    Function Decorator to check if a valid netrc file exists.
+    If not it raises an error.  Otherwise it
+    returns the function and proceeds as normal.
+
+    Returns:
+        The decorated function
+
+    Raises:
+        BrainError: You are not authorized to access the SDSS collaboration
+
+    Example:
+        >>>
+        >>> @check_auth
+        >>> def my_function():
+        >>>     return 'I am working function'
+        >>>
+
+    '''
+
+    from brain import bconfig
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # iscollab = bconfig.access == 'collab'
+        valid_netrc = bconfig._check_netrc()
+        if valid_netrc:
+            return func(*args, **kwargs)
+        else:
+            raise BrainError('You are not authorized to access the SDSS collaboration')
+
+    return wrapper
+

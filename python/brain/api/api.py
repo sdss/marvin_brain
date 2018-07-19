@@ -1,11 +1,8 @@
 from __future__ import print_function
-import os
 import requests
-import json
-import msgpack
-import msgpack_numpy as m
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
+from brain.utils.general import uncompress_data
 from brain.core.core import URLMapDict
 try:
     from urlparse import urljoin
@@ -16,15 +13,14 @@ try:
 except ImportError:
     cache = None
 
-m.patch()
 configkeys = []
 
 
 class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
-    def __init__(self, route, params=None, request_type='post', auth='netrc',
-                 timeout=(3.05, 300), headers=None, stream=None):
+    def __init__(self, route, params=None, request_type='post', auth='token',
+                 timeout=(3.05, 300), headers=None, stream=None, datastream=None):
         self.results = None
         self.response_time = None
         self.route = route
@@ -32,11 +28,14 @@ class BrainInteraction(object):
         self.request_type = request_type
         self.timeout = timeout
         self.stream = stream
+        self.datastream = datastream
         self.headers = headers if headers is not None else {}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
                             422: 'Unprocessable Entity', 429: 'Rate Limit Exceeded'}
+        self.compression = self.params['compression'] if self.params and \
+            'compression' in self.params else bconfig.compression
 
         self.url = urljoin(bconfig.sasurl, route) if self.route else None
 
@@ -75,6 +74,8 @@ class BrainInteraction(object):
 
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
+
+        # check access and authentication
         self.authtype = authtype
         if authtype == 'netrc':
             # do nothing since this is default with no auth set
@@ -85,44 +86,109 @@ class BrainInteraction(object):
             self.session.auth = auth
         elif authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
+        elif authtype == 'token':
+            assert bconfig.token is not None, 'You must have a valid token set to use the API.  Please login.'
+            self.headers.update({'Authorization': 'Bearer {0}'.format(bconfig.token)})
+
+    def _decode_stream(self, content):
+        ''' Decode the content string for a data stream
+
+        Uncompresses the response content either using JSON or msgpack.
+        Will uncompress the entire response content in single go. If
+        datastream is True, then the content is streamed back using a
+        generator and has been compressed row-by-row. See the generator
+        query fxn in marvin/api/query.py.
+
+        Parameters:
+            content (str):
+                The response content string
+
+        Returns:
+            The uncompressed content data
+
+        '''
+
+        if self.datastream:
+            # since content is a single string, must split on the row separator
+            data = [uncompress_data(row, uncompress_with=self.compression) for row in content.split(';\n') if row]
+            # data is expected to be in a dictionary key called 'data'
+            out = {}
+            out['data'] = data
+        else:
+            out = uncompress_data(content, uncompress_with=self.compression)
+        return out
 
     def _get_json(self, response):
-        ''' Try to extract any json data '''
+        ''' Try to extract any json data
+
+        Tries to use the built in json fxn to extract
+        the response content
+
+        Parameters:
+            response:
+                The full response
+
+        Returns:
+            The JSON data
+        '''
         try:
             json = response.json()
         except ValueError as e:
             json = None
         return json
 
-    def _get_json_data(self, response, chunksize=None):
-        ''' Try to extract json data from a stream or using json() '''
+    def _get_data(self, response, chunksize=None, dtype=None):
+        ''' Get json/binary data from the response content
+
+        Tries to extract the data from the response content.
+        If stream is set, then streams the response content in chunks and extracts
+        the data, to save on client memory.  Otherwise reads the entire response
+        content into memory at once.
+
+        Parameters:
+            response:
+                The full response
+            chunksize (int):
+                The unit of the chunk size in bytes.  When None, chunksize determined by
+                interal magic. Default is None
+            dtype (str):
+                The data type.  Either json or other (e.g. binary content using msgpack).
+
+        Returns:
+            The uncompressed data as a list.
+
+        '''
 
         if self.stream:
             resstring = ''.join([bytes.decode(chunk) for chunk in response.iter_content(chunk_size=chunksize)])
-            json_data = json.loads(resstring)
+            data = self._decode_stream(resstring)
         else:
-            json_data = self._get_json(response)
-
-        return json_data
-
-    def _get_binary_data(self, response, chunksize=None):
-        ''' Get binary data from msgpack '''
-
-        if self.stream:
-            resstring = ''.join([chunk for chunk in response.iter_content(chunk_size=chunksize)])
-            unpacked = msgpack.unpackb(resstring, raw=False)
-        else:
-            unpacked = msgpack.unpackb(response.content, raw=False)
-        return unpacked
+            if dtype == 'json':
+                data = self._get_json(response)
+            else:
+                data = uncompress_data(response.content, uncompress_with='msgpack')
+        return data
 
     def _get_content(self, response):
-        ''' Get the response content '''
+        ''' Get the response content
+
+        Gets the response content either as a JSON
+        or binary data from msgpack
+
+        Parameters:
+            response:
+                The full response
+
+        Returns:
+            The uncompressed data
+
+        '''
 
         content_type = response.headers['Content-Type']
         if 'json' in content_type:
-            data = self._get_json_data(response)
+            data = self._get_data(response, dtype='json')
         elif 'octet-stream' in content_type:
-            data = self._get_binary_data(response)
+            data = self._get_data(response)
         else:
             data = response.content
 
@@ -147,15 +213,24 @@ class BrainInteraction(object):
                     msg = 'Please check your Oauth authentication'
                 elif self.authtype == 'http':
                     msg = 'Please check your http/digest authentication'
+                elif self.authtype == 'token':
+                    msg = '{0}. Please check your token or login again for a fresh one.'.format(json_data['msg'])
+                else:
+                    msg = 'Please check your authentication method.'
+                errmsg = json_data['error'] if 'error' in json_data else ''
                 self._closeRequestSession()
-                raise BrainApiAuthError('API Authentication Error: {0}'.format(msg))
+                raise BrainApiAuthError('API Authentication Error: {0}. {1}'.format(msg, errmsg))
             elif self.status_code == 422:
                 self._closeRequestSession()
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
             else:
                 self._closeRequestSession()
-                apijson = json_data['api_error']
-                errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                if 'api_error' in json_data:
+                    apijson = json_data['api_error']
+                    errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                elif 'error' in json_data:
+                    err = json_data['error']
+                    errmsg = '{0}'.format(err)
                 raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
         else:
             # Not bad
