@@ -109,12 +109,14 @@ class BrainInteraction(object):
         '''
 
         if self.datastream:
+            # decoding a generator content stream
             # since content is a single string, must split on the row separator
             data = [uncompress_data(row, uncompress_with=self.compression) for row in content.split(';\n') if row]
             # data is expected to be in a dictionary key called 'data'
             out = {}
             out['data'] = data
         else:
+            # decoding a normal content stream
             out = uncompress_data(content, uncompress_with=self.compression)
         return out
 
@@ -160,9 +162,11 @@ class BrainInteraction(object):
         '''
 
         if self.stream:
+            # retrieves response data in chunks to minimize client memory
             resstring = ''.join([bytes.decode(chunk) for chunk in response.iter_content(chunk_size=chunksize)])
             data = self._decode_stream(resstring)
         else:
+            # retrieves response data all at once
             if dtype == 'json':
                 data = self._get_json(response)
             else:
