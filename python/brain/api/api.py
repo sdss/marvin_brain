@@ -1,5 +1,7 @@
 from __future__ import print_function
 import requests
+from requests.auth import AuthBase, _basic_auth_str
+from requests.utils import get_netrc_auth
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
 from brain import bconfig
 from brain.utils.general import uncompress_data
@@ -74,21 +76,9 @@ class BrainInteraction(object):
 
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
-
-        # check access and authentication
         self.authtype = authtype
-        if authtype == 'netrc':
-            # do nothing since this is default with no auth set
-            pass
-        elif authtype == 'http':
-            from requests_toolbelt import GuessAuth
-            auth = GuessAuth('user', 'passwd')
-            self.session.auth = auth
-        elif authtype == 'oauth':
-            raise BrainNotImplemented('OAuth authentication')
-        elif authtype == 'token':
-            assert bconfig.token is not None, 'You must have a valid token set to use the API.  Please login.'
-            self.headers.update({'Authorization': 'Bearer {0}'.format(bconfig.token)})
+        if authtype:
+            self.session.auth = BrainAuth(self.authtype)
 
     def _decode_stream(self, content):
         ''' Decode the content string for a data stream
@@ -271,6 +261,7 @@ class BrainInteraction(object):
 
         # Loads the local config parameters
         self._loadConfigParams()
+
         # Send the request
         try:
             if request_type == 'get':
@@ -326,3 +317,39 @@ class BrainInteraction(object):
             return URLMapDict(self.results['urlmap'])
         else:
             return URLMapDict()
+
+
+class BrainAuth(AuthBase):
+    ''' This is a custom requests authorization class
+
+    This class is used to ensure that token authentication takes
+    precedence over the netrc file in the request.  See
+    https://github.com/requests/requests/issues/3929 and
+    `Request Custom Headers <http://docs.python-requests.org/en/master/user/quickstart/#custom-headers>_`
+
+    Parameters:
+        authtype (str):
+            the authentication method used for the API.  Currently set as default to use
+            JSON Web token authentication.
+
+    '''
+
+    def __init__(self, authtype, **kwargs):
+        self.authtype = authtype
+
+    def __call__(self, r):
+        ''' checks the authentication when the auth is called '''
+
+        # check access and authentication
+        if self.authtype == 'token':
+            assert bconfig.token is not None, 'You must have a valid token set to use the API.  Please login.'
+            r.headers['Authorization'] = 'Bearer {0}'.format(bconfig.token)
+        elif self.authtype == 'http':
+            from requests_toolbelt import GuessAuth
+            r.auth = GuessAuth('user', 'passwd')
+        elif self.authtype == 'netrc' and bconfig.has_netrc:
+            r.headers['Authorization'] = _basic_auth_str(*get_netrc_auth(r.url))
+        elif self.authtype == 'oauth':
+            raise BrainNotImplemented('OAuth authentication')
+        return r
+
