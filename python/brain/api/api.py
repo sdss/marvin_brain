@@ -1,5 +1,6 @@
 from __future__ import print_function
 import requests
+import os
 from requests.auth import AuthBase, _basic_auth_str
 from requests.utils import get_netrc_auth
 from brain.core.exceptions import BrainError, BrainApiAuthError, BrainNotImplemented
@@ -7,9 +8,9 @@ from brain import bconfig
 from brain.utils.general import uncompress_data
 from brain.core.core import URLMapDict
 try:
-    from urlparse import urljoin
+    from urlparse import urlsplit, urlunsplit
 except ImportError:
-    from urllib.parse import urljoin
+    from urllib.parse import urlsplit, urlunsplit
 try:
     from cachecontrol import CacheControl as cache
 except ImportError:
@@ -22,7 +23,8 @@ class BrainInteraction(object):
     """ This class defines convenience wrappers for the Brain RESTful API """
 
     def __init__(self, route, params=None, request_type='post', auth='token',
-                 timeout=(3.05, 300), headers=None, stream=None, datastream=None):
+                 timeout=(3.05, 300), headers=None, stream=None,
+                 datastream=None, send=True):
         self.results = None
         self.response_time = None
         self.route = route
@@ -48,9 +50,9 @@ class BrainInteraction(object):
         self.setAuth(authtype=auth)
 
         # sends the request
-        if self.url:
+        if self.url and send:
             self._sendRequest(request_type)
-        else:
+        elif not self.url and send:
             raise BrainError('No route and/or url specified {0}'.format(self.url))
 
     def __repr__(self):
@@ -77,7 +79,7 @@ class BrainInteraction(object):
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
         self.authtype = authtype
-        if authtype:
+        if authtype and authtype != 'netrc':
             self.session.auth = BrainAuth(self.authtype)
 
     def _decode_stream(self, content):
@@ -348,8 +350,26 @@ class BrainAuth(AuthBase):
             from requests_toolbelt import GuessAuth
             r.auth = GuessAuth('user', 'passwd')
         elif self.authtype == 'netrc' and bconfig.has_netrc:
+            print('url auth', r.url, get_netrc_auth(r.url))
             r.headers['Authorization'] = _basic_auth_str(*get_netrc_auth(r.url))
         elif self.authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
         return r
 
+
+def urljoin(url1, url2):
+    ''' custom function to join two url paths '''
+
+    e = urlsplit(url1)
+    t = urlsplit(url2)
+    final = urlunsplit(tuple(strjoin(*z) for z in zip(e, t)))
+    return final
+
+
+def strjoin(str1, str2):
+    ''' joins two url strings '''
+    if not str2.startswith(str1):
+        f = os.path.join(str1, str2.lstrip('/')) if str2 else str1
+    else:
+        f = str2
+    return f
