@@ -24,7 +24,7 @@ class BrainInteraction(object):
 
     def __init__(self, route, params=None, request_type='post', auth='token',
                  timeout=(3.05, 300), headers=None, stream=None,
-                 datastream=None, send=True):
+                 datastream=None, send=True, base=None):
         self.results = None
         self.response_time = None
         self.route = route
@@ -41,7 +41,8 @@ class BrainInteraction(object):
         self.compression = self.params['compression'] if self.params and \
             'compression' in self.params else bconfig.compression
 
-        self.url = urljoin(bconfig.sasurl, route) if self.route else None
+        base = base if base else bconfig.sasurl
+        self.url = urljoin(base, route) if self.route else None
 
         # set request Session
         self._setRequestSession()
@@ -202,6 +203,7 @@ class BrainInteraction(object):
                                                            self.statuscodes[response.status_code])
             self.results = {'http_status_code': response.status_code, 'message': errmsg}
             json_data = self._get_content(response)
+
             if self.status_code == 401:
                 if self.authtype == 'netrc':
                     msg = 'Please create or check credentials in your local .netrc file'
@@ -210,10 +212,11 @@ class BrainInteraction(object):
                 elif self.authtype == 'http':
                     msg = 'Please check your http/digest authentication'
                 elif self.authtype == 'token':
-                    msg = '{0}. Please check your token or login again for a fresh one.'.format(json_data['msg'])
+                    err = json_data['msg'] if b'msg' in json_data else str(json_data)
+                    msg = '{0}. Please check your token or login again for a fresh one.'.format(err)
                 else:
                     msg = 'Please check your authentication method.'
-                errmsg = json_data['error'] if 'error' in json_data else ''
+                errmsg = json_data['error'] if b'error' in json_data else ''
                 self._closeRequestSession()
                 raise BrainApiAuthError('API Authentication Error: {0}. {1}'.format(msg, errmsg))
             elif self.status_code == 422:
@@ -221,10 +224,10 @@ class BrainInteraction(object):
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
             else:
                 self._closeRequestSession()
-                if 'api_error' in json_data:
+                if b'api_error' in json_data:
                     apijson = json_data['api_error']
                     errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
-                elif 'error' in json_data:
+                elif b'error' in json_data:
                     err = json_data['error']
                     errmsg = '{0}'.format(err)
                 raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
