@@ -20,10 +20,8 @@ class BrainConfig(object):
 
     def __init__(self):
 
-        #self._public_api_url = 'https://lore.sdss.utah.edu/public/'
-        #self._collab_api_url = 'https://lore.sdss.utah.edu/'
-        self._public_api_url = 'http://localhost:8081/'
-        self._collab_api_url = 'http://localhost:8080/'
+        self._public_api_url = 'https://lore.sdss.utah.edu/public/'
+        self._collab_api_url = 'https://lore.sdss.utah.edu/'
         self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
         self._mode = 'auto'
         self.session_id = None
