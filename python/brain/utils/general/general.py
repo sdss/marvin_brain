@@ -205,7 +205,24 @@ def uncompress_data(data, uncompress_with=None):
 
 
 def inspection_authenticate(session, username=None, password=None):
-    ''' Authenticate with Trac using Inspection '''
+    ''' Authenticate with Trac using Inspection
+
+        .. deprecated:: 2.3.0
+       Use :class:`brain.utils.general.collaboration_authenticate` instead.
+
+    Parameters:
+        session (dict):
+            A dict or Flask session object to collect parameters
+        username (str):
+            The Trac username
+        password (str):
+            The Trac user password
+
+    Returns:
+        A dictionary of user info specifying if the user has authenticated
+        and is valid
+
+    '''
 
     try:
         from inspection.marvin import Inspection
@@ -225,8 +242,69 @@ def inspection_authenticate(session, username=None, password=None):
     return result
 
 
-def validate_user(username, password, htpassfile=None, session={}, request=None):
-    ''' Validate the User with htpassfile or Trac '''
+def collaboration_authenticate(username=None, password=None, verbose=None):
+    ''' Authenticate with Trac using Collaboration
+
+    Authenticate using the SDSS collaboration python package
+
+    Parameters:
+        username (str):
+            The Trac username
+        password (str):
+            The Trac user password
+
+    Returns:
+        A dictionary of user info specifying if the user has authenticated
+        and is valid
+
+    '''
+
+    result = {'is_valid': False, 'status': -1}
+
+    # try to import the package
+    try:
+        from collaboration.wiki import Credential
+    except ImportError as e:
+        result['message'] = str(e)
+        return result
+
+    # get credentials
+    try:
+        cred = Credential(username=username, password=password, verbose=verbose)
+    except Exception as e:
+        result['message'] = str(e)
+    else:
+        cred.authenticate_via_trac()
+        result['is_valid'] = cred.authenticated is True
+        if cred.authenticated:
+            result['status'] = 1
+            cred.set_member()
+            result['user'] = cred.member.username
+            result['fullname'] = cred.member.fullname
+    return result
+
+
+def validate_user(username, password, htpassfile=None, request=None):
+    ''' Validate the User with htpassfile or Trac
+
+    Tries to validate a user first with a user login from the htpassfile,
+    and second from a Trac wiki account.
+
+    Parameters:
+        username (str):
+            The login user id
+        password (str):
+            The login user password
+        htpassfile (str):
+            Optional.  The full path to an htpassfile.
+        request (Request):
+            The Flask request object
+
+    Returns:
+        A tuple of (boolean if the user is valid, the username, and the
+        results dictionary)
+
+    '''
 
     from brain import bconfig
     result = {}
@@ -251,7 +329,7 @@ def validate_user(username, password, htpassfile=None, session={}, request=None)
         else:
             result['error'] = 'No valid htpasswd file found!'
     else:
-        result = inspection_authenticate(session, username=username, password=password)
+        result = collaboration_authenticate(username=username, password=password)
         is_valid = result['is_valid']
         user = result.get('membername', None)
 
@@ -259,7 +337,27 @@ def validate_user(username, password, htpassfile=None, session={}, request=None)
 
 
 def get_db_user(username, password, dbsession=None, user_model=None, request=None):
-    ''' Get a User from a database session '''
+    ''' Get a User from a database session
+
+    Gets a User object from the database User table.  If the User does not exists,
+    adds the User.
+
+    Parameters:
+        username (str):
+            The user id
+        password (str):
+            The user password
+        dbsession (db.Session):
+            The SQLAlchemy database session object
+        user_model (Model):
+            The SQLALchemy User ModelClass
+        request (Request):
+            The Flask request object
+
+    Returns:
+        The database User object.
+
+    '''
 
     if not dbsession:
         return None
