@@ -6,3 +6,6 @@ netrc_path: '~/.netrc'
 # path to htpass file
 # htpass_path: None
 
+# Use the test API servers
+use_test: False
+

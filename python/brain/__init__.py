@@ -20,8 +20,8 @@ class BrainConfig(object):
 
     def __init__(self):
 
-        self._public_api_url = 'https://lore.sdss.utah.edu/public/'
-        self._collab_api_url = 'https://lore.sdss.utah.edu/'
+        # self._public_api_url = 'https://lore.sdss.utah.edu/public/'
+        # self._collab_api_url = 'https://lore.sdss.utah.edu/'
         self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
         self._mode = 'auto'
         self.session_id = None
@@ -39,6 +39,8 @@ class BrainConfig(object):
 
         self._load_defaults()
         self._check_paths()
+        self._set_api_urls()
+
 
     @property
     def public_api_url(self):
@@ -112,6 +114,19 @@ class BrainConfig(object):
         htpass_path = self._custom_config.get('htpass_path', None)
         if htpass_path:
             self._htpass_path = htpass_path
+
+    def _set_api_urls(self):
+        ''' Set the API urls for production or test servers '''
+
+        # check for
+        use_test = self._custom_config.get('use_test', None)
+        if use_test:
+            self._public_api_url = 'https://lore.sdss.utah.edu/public/'
+            self._collab_api_url = 'https://lore.sdss.utah.edu/'
+        else:
+            self._public_api_url = 'https://dr15.sdss.org/'
+            self._collab_api_url = 'https://sas.sdss.org/'
+
 
     def _check_host(self, host, netfile, msg=None):
         ''' Check for a valid host in the netrc '''
