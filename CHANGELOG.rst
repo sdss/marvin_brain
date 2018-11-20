@@ -4,6 +4,10 @@ Marvin's Brain Change Log
 [0.1.0] - 2018/?/?
 --------------------
 
+Fixed
+^^^^^
+- Issue with Interaction class not always propagating a new authype down into BrainAuth
+
 Changed
 ^^^^^^^
 - Switched SDSS user authentication over to Credentails (collaboration.wiki)
