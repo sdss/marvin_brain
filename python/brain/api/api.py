@@ -80,7 +80,7 @@ class BrainInteraction(object):
     def setAuth(self, authtype='netrc'):
         ''' set the session authentication '''
         self.authtype = authtype
-        if authtype and authtype != 'netrc':
+        if authtype:
             self.session.auth = BrainAuth(self.authtype)
 
     def _decode_stream(self, content):
@@ -353,8 +353,9 @@ class BrainAuth(AuthBase):
             from requests_toolbelt import GuessAuth
             r.auth = GuessAuth('user', 'passwd')
         elif self.authtype == 'netrc' and bconfig.has_netrc:
-            print('url auth', r.url, get_netrc_auth(r.url))
-            r.headers['Authorization'] = _basic_auth_str(*get_netrc_auth(r.url))
+            netauth = get_netrc_auth(r.url)
+            if netauth:
+                r.headers['Authorization'] = _basic_auth_str(*get_netrc_auth(r.url))
         elif self.authtype == 'oauth':
             raise BrainNotImplemented('OAuth authentication')
         return r

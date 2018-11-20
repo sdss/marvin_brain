@@ -6,12 +6,11 @@
 # @Author: Brian Cherinka
 # @Date:   2018-02-19 23:37:21
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-04-04 11:49:20
+# @Last Modified time: 2018-11-20 16:28:28
 
 from __future__ import print_function, division, absolute_import
 import pytest
 import os
-import sys
 
 from brain import bconfig
 from brain.core.exceptions import BrainError, BrainUserWarning
@@ -91,7 +90,7 @@ class TestNetrc(object):
     @pytest.mark.parametrize('host, msg',
                              [('data.sdss.org', 'api.sdss.org not found in netrc. You will not have remote access to SDSS data'),
                               ('api.sdss.org', 'data.sdss.org not found in netrc. You will not be able to download SDSS data')],
-                              ids=['noapi', 'nodata'])
+                             ids=['noapi', 'nodata'])
     def test_only_one_host(self, goodnet, host, msg):
         goodnet.write(write(host))
         with pytest.warns(BrainUserWarning) as cm:
