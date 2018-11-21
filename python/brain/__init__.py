@@ -22,7 +22,7 @@ class BrainConfig(object):
 
         # self._public_api_url = 'https://lore.sdss.utah.edu/public/'
         # self._collab_api_url = 'https://lore.sdss.utah.edu/'
-        self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
+        #self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
         self._mode = 'auto'
         self.session_id = None
         self.request_session = None
@@ -126,6 +126,8 @@ class BrainConfig(object):
         else:
             self._public_api_url = 'https://dr15.sdss.org/'
             self._collab_api_url = 'https://sas.sdss.org/'
+
+        self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
 
 
     def _check_host(self, host, netfile, msg=None):
