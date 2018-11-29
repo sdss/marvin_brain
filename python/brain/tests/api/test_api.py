@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-11-20 16:32:15
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-11-20 17:22:00
+# @Last Modified time: 2018-11-29 18:46:25
 
 from __future__ import print_function, division, absolute_import
 
@@ -20,7 +20,7 @@ auths = [None, 'token', 'netrc']
 
 @pytest.fixture(params=auths)
 def brainint(request):
-    base = 'https://lore.sdss.utah.edu/'
+    base = 'https://lore.sdss.utah.edu/test/'
     url = '/marvin/api/general/getroutemap/'
     ii = BrainInteraction(url, auth=request.param, send=False, base=base)
     yield ii
