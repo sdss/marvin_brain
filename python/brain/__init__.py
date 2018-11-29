@@ -122,7 +122,7 @@ class BrainConfig(object):
         use_test = self._custom_config.get('use_test', None)
         if use_test:
             self._public_api_url = 'https://lore.sdss.utah.edu/public/'
-            self._collab_api_url = 'https://lore.sdss.utah.edu/'
+            self._collab_api_url = 'https://lore.sdss.utah.edu/test/'
         else:
             self._public_api_url = 'https://dr15.sdss.org/'
             self._collab_api_url = 'https://sas.sdss.org/'
