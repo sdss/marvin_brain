@@ -17,7 +17,7 @@ except ImportError:
 
 __all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data',
            'uncompress_data', 'inspection_authenticate', 'validate_user',
-           'get_db_user', 'build_routemap']
+           'get_db_user', 'build_routemap', 'collaboration_authenticate']
 
 
 def getDbMachine():
@@ -279,8 +279,12 @@ def collaboration_authenticate(username=None, password=None, verbose=None):
         if cred.authenticated:
             result['status'] = 1
             cred.set_member()
-            result['user'] = cred.member.username
-            result['fullname'] = cred.member.fullname
+            result['member'] = cred.member
+            if cred.member:
+                result['user'] = cred.member.username
+                result['fullname'] = cred.member.fullname
+            else:
+                result['user'] = username
     return result
 
 
@@ -331,7 +335,7 @@ def validate_user(username, password, htpassfile=None, request=None):
     else:
         result = collaboration_authenticate(username=username, password=password)
         is_valid = result['is_valid']
-        user = result.get('membername', None)
+        user = result.get('user', None)
 
     return is_valid, user, result
 
