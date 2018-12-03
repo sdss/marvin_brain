@@ -16,7 +16,7 @@ from brain.core.exceptions import BrainError, BrainUserWarning
 from brain.utils.general.general import merge
 
 # Set the Brain version
-__version__ = '0.1.0dev'
+__version__ = '0.1.0'
 
 
 class BrainConfig(object):
