@@ -10,7 +10,7 @@ Fixed
 
 Changed
 ^^^^^^^
-- Switched SDSS user authentication over to Credentails (collaboration.wiki)
+- Switched SDSS user authentication over to Credentails (collaboration.wiki) from the old Inspection
 - Added a `use_test` custom config kwarg to switch API urls from production to test servers
 - Moved functionality to collect all web routes from a Flask web app into a standalone callable function
 
@@ -21,4 +21,5 @@ Added
 - new `BrainAuth` class to override standard requests library handling of authentication.
 - Options on `Interaction` class to stream response back in iterative chunks
 - Response compression options for `json` or `msgpack` compression.
+- A custom brain.yml file for configuration
 
