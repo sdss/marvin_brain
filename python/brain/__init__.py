@@ -15,14 +15,14 @@ import yaml
 from brain.core.exceptions import BrainError, BrainUserWarning
 from brain.utils.general.general import merge
 
+# Set the Brain version
+__version__ = '0.1.0dev'
+
 
 class BrainConfig(object):
 
     def __init__(self):
 
-        # self._public_api_url = 'https://lore.sdss.utah.edu/public/'
-        # self._collab_api_url = 'https://lore.sdss.utah.edu/'
-        #self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
         self._mode = 'auto'
         self.session_id = None
         self.request_session = None

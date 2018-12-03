@@ -22,4 +22,4 @@ Added
 - Options on `Interaction` class to stream response back in iterative chunks
 - Response compression options for `json` or `msgpack` compression.
 - A custom brain.yml file for configuration
-
+- Added a brain version and bumpversion config
