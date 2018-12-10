@@ -4,6 +4,10 @@ Marvin's Brain Change Log
 [0.1.2] - unreleased
 --------------------
 
+Changed
+^^^^^^^
+- Setting ``verify`` default back to True
+
 
 [0.1.1] - unreleased
 --------------------

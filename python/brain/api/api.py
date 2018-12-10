@@ -24,7 +24,7 @@ class BrainInteraction(object):
 
     def __init__(self, route, params=None, request_type='post', auth='token',
                  timeout=(3.05, 300), headers=None, stream=None,
-                 datastream=None, send=True, base=None, verify=False):
+                 datastream=None, send=True, base=None, verify=True):
         self.results = None
         self.response_time = None
         self.route = route
