@@ -24,7 +24,7 @@ class BrainInteraction(object):
 
     def __init__(self, route, params=None, request_type='post', auth='token',
                  timeout=(3.05, 300), headers=None, stream=None,
-                 datastream=None, send=True, base=None):
+                 datastream=None, send=True, base=None, verify=False):
         self.results = None
         self.response_time = None
         self.route = route
@@ -32,6 +32,7 @@ class BrainInteraction(object):
         self.request_type = request_type
         self.timeout = timeout
         self.stream = stream
+        self.verify = verify
         self.datastream = datastream
         self.headers = headers if headers is not None else {}
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
@@ -271,10 +272,10 @@ class BrainInteraction(object):
         try:
             if request_type == 'get':
                 self._response = self.session.get(self.url, params=self.params, timeout=self.timeout,
-                                                  headers=self.headers, stream=self.stream)
+                                                  headers=self.headers, stream=self.stream, verify=self.verify)
             elif request_type == 'post':
                 self._response = self.session.post(self.url, data=self.params, timeout=self.timeout,
-                                                   headers=self.headers, stream=self.stream)
+                                                   headers=self.headers, stream=self.stream, verify=self.verify)
         except requests.Timeout as rt:
             self._closeRequestSession()
             errmsg = 'Your request took longer than 5 minutes and timed out. Please try again or simplify your request.'

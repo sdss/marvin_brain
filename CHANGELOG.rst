@@ -4,6 +4,11 @@ Marvin's Brain Change Log
 [0.1.1] - unreleased
 --------------------
 
+Changed
+^^^^^^^
+- Added a ``verify`` keyword argument to Interaction to allow disabling of SSL certification on requests
+- Setting ``verify`` to False as a hack for dr15 release day until CHPC can fix.
+
 
 [0.1.0] - 2018/12/03
 --------------------

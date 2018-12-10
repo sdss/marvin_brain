@@ -6,12 +6,13 @@
 # @Author: Brian Cherinka
 # @Date:   2018-11-20 16:32:15
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-11-29 18:46:25
+# @Last Modified time: 2018-12-10 13:31:57
 
 from __future__ import print_function, division, absolute_import
 
 from brain import bconfig
 from brain.api.api import BrainInteraction, BrainAuth
+from brain.core.exceptions import BrainError
 import pytest
 import requests
 
@@ -75,4 +76,12 @@ class TestInteraction(object):
             assert brainint.session.auth is None
         else:
             assert brainint.authtype == brainint.session.auth.authtype
+
+    def test_verify_fail(self):
+        base = 'https://dr15.sdss.org/'
+        url = '/marvin/api/general/getroutemap/'
+        with pytest.raises(BrainError) as cm:
+            ii = BrainInteraction(url, auth='netrc', send=True, base=base, params={}, verify=True)
+        errmsg = 'certificate verify failed'
+        assert errmsg in str(cm.value)
 
