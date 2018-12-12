@@ -7,6 +7,7 @@ Marvin's Brain Change Log
 Changed
 ^^^^^^^
 - Setting ``verify`` default back to True
+- Changed JHU db check to look for SCISERVER environment variable
 
 
 [0.1.1] - unreleased
