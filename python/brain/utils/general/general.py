@@ -45,7 +45,8 @@ def getDbMachine():
     lore = 'lore' in machine if machine else None
 
     # Check if jhu or not
-    jhu = bool(os.environ.get('SCISERVER', None))
+    sciserver = os.environ.get('SCISERVER', None)
+    jhu = sciserver in ['true', 'True', '1']
 
     # Set the dbconfig variable
     if localhost:
