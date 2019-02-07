@@ -10,7 +10,7 @@ Changed
 - Changed JHU db check to look for SCISERVER environment variable
 
 
-[0.1.1] - unreleased
+[0.1.1] - 2018/12/10
 --------------------
 
 Changed
