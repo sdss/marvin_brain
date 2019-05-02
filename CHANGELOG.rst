@@ -8,7 +8,8 @@ Changed
 ^^^^^^^
 - Setting ``verify`` default back to True
 - Changed JHU db check to look for SCISERVER environment variable
-
+- Added new get_yaml_loader function to get proper yaml Loader for 3.1/5.1 spec
+- Used new yaml Loader to accommodate 5.1 spec
 
 [0.1.1] - 2018/12/10
 --------------------

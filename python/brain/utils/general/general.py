@@ -3,6 +3,8 @@ import decimal
 import datetime
 import numpy as np
 import json
+import yaml
+from pkg_resources import parse_version
 from brain.core.exceptions import BrainError, BrainWarning
 from hashlib import md5
 from passlib.apache import HtpasswdFile
@@ -17,7 +19,8 @@ except ImportError:
 
 __all__ = ['getDbMachine', 'merge', 'convertIvarToErr', 'compress_data',
            'uncompress_data', 'inspection_authenticate', 'validate_user',
-           'get_db_user', 'build_routemap', 'collaboration_authenticate']
+           'get_db_user', 'build_routemap', 'collaboration_authenticate',
+           'get_yaml_loader']
 
 
 def getDbMachine():
@@ -429,3 +432,12 @@ def build_routemap(app):
 
     return output
 
+
+def get_yaml_loader():
+    ''' Get a yaml loader based on the yaml package version '''
+
+    if parse_version(yaml.__version__) >= parse_version('5.1'):
+        loader = yaml.FullLoader
+    else:
+        loader = yaml.SafeLoader
+    return loader
