@@ -1,7 +1,7 @@
 Marvin's Brain Change Log
 =========================
 
-[0.1.2] - unreleased
+[0.1.2] - 2019/12/11
 --------------------
 
 Changed
