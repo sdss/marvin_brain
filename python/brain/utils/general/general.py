@@ -285,8 +285,9 @@ def collaboration_authenticate(username=None, password=None, verbose=None):
             cred.set_member()
             result['member'] = cred.member
             if cred.member:
-                result['user'] = cred.member.username
-                result['fullname'] = cred.member.fullname
+                sdss4 = cred.member.get('sdss4', None)
+                result['user'] = sdss4.username if sdss4 else ''
+                result['fullname'] = sdss4.fullname if sdss4 else ''
             else:
                 result['user'] = username
     return result
