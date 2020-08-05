@@ -33,7 +33,8 @@ class BrainConfig(object):
         self._access_types = ['public', 'collab']
         self._netrc_path = os.path.join(os.path.expanduser('~'), '.netrc')
         self._netrc = None
-        self.hosts = ['data.sdss.org', 'api.sdss.org']
+        self.hosts = ['data.sdss.org', 'api.sdss.org', 'magrathea.sdss.org']
+        self.mirrors = ['magrathea.sdss.org']
         self._valid_hosts = dict.fromkeys(self.hosts)
         self.token = None
 
@@ -49,6 +50,10 @@ class BrainConfig(object):
     @property
     def collab_api_url(self):
         return self._collab_api_url
+
+    @property
+    def mirror_api_url(self):
+        return self._mirror_api_url
 
     @property
     def mode(self):
@@ -126,9 +131,9 @@ class BrainConfig(object):
         else:
             self._public_api_url = 'https://dr15.sdss.org/'
             self._collab_api_url = 'https://sas.sdss.org/'
+            self._mirror_api_url = 'https://magrathea.sdss.org/'
 
         self.sasurl = os.getenv('SAS_URL') if 'SAS_URL' in os.environ else self._collab_api_url
-
 
     def _check_host(self, host, netfile, msg=None):
         ''' Check for a valid host in the netrc '''
