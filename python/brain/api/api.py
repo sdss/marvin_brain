@@ -38,7 +38,8 @@ class BrainInteraction(object):
         self.statuscodes = {200: 'Ok', 401: 'Authentication Required', 404: 'URL Not Found',
                             500: 'Internal Server Error', 405: 'Method Not Allowed',
                             400: 'Bad Request', 502: 'Bad Gateway', 504: 'Gateway Timeout',
-                            422: 'Unprocessable Entity', 429: 'Rate Limit Exceeded'}
+                            422: 'Unprocessable Entity', 429: 'Rate Limit Exceeded',
+                            409: 'Conflict'}
         self.compression = self.params['compression'] if self.params and \
             'compression' in self.params else bconfig.compression
 
@@ -225,10 +226,10 @@ class BrainInteraction(object):
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
             else:
                 self._closeRequestSession()
-                if b'api_error' in json_data:
+                if str('api_error') in json_data:
                     apijson = json_data['api_error']
                     errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
-                elif b'error' in json_data:
+                elif str('error') in json_data:
                     err = json_data['error']
                     errmsg = '{0}'.format(err)
                 raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, errmsg))
