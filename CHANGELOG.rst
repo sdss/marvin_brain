@@ -1,6 +1,10 @@
 Marvin's Brain Change Log
 =========================
 
+[0.1.4] - 2020/08/31
+--------------------
+- Syntax change to accommodate networkx 2.4.x deprecations
+
 [0.1.3] - 2020/08/05
 --------------------
 - Added `magrathea.sdss.org` mirror option

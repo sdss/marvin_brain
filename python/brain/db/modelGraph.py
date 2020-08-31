@@ -237,7 +237,7 @@ class ModelGraph(object):
                 if format_out == 'tables':
                     return tables
                 else:
-                    return [self.graph.node[tables[0]]['model']]
+                    return [self.graph.nodes[tables[0]]['model']]
             else:
                 path = self.getJoins(models=[nexus, tables[0]], nexus=None,
                                      format_out=format_out)
@@ -293,6 +293,6 @@ class ModelGraph(object):
         if format_out == 'tables':
             pathSet = path
         else:
-            pathSet = [self.graph.node[table]['model'] for table in path]
+            pathSet = [self.graph.nodes[table]['model'] for table in path]
 
         return pathSet
