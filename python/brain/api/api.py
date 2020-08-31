@@ -228,7 +228,7 @@ class BrainInteraction(object):
                 self._closeRequestSession()
                 if str('api_error') in json_data:
                     apijson = json_data['api_error']
-                    errmsg = '{0}\n{1}'.format(apijson['message'], apijson['traceback']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
+                    errmsg = '{0}'.format(apijson['message']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
                 elif str('error') in json_data:
                     err = json_data['error']
                     errmsg = '{0}'.format(err)
