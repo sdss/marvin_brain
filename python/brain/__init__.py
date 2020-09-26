@@ -108,16 +108,6 @@ class BrainConfig(object):
     def _load_defaults(self):
         ''' Load the Brain config yaml file '''
 
-        # config = yaml.load(open(os.path.join(os.path.dirname(__file__), 'data/brain.yml')), Loader=get_yaml_loader())
-        # user_config_path = os.path.expanduser('~/.brain/brain.yml')
-        # if os.path.exists(user_config_path):
-        #     config = merge(yaml.load(open(user_config_path), Loader=get_yaml_loader()), config)
-
-        # # update any matching Config values
-        # for key, value in config.items():
-        #     if hasattr(self, key):
-        #         self.__setattr__(key, value)
-
         #self._custom_config = config
         self._custom_config = cfg_params
 
