@@ -14,11 +14,11 @@ import warnings
 from brain.core.exceptions import BrainError, BrainUserWarning
 from sdsstools import get_config, get_logger, get_package_version
 
-NAME = 'brain'
+NAME = 'marvin-brain'
 
 # Loads config
 curdir = os.path.dirname(os.path.abspath(__file__))
-cfg_params = get_config(NAME, config_file=os.path.join(curdir, 'data/brain.yml'))
+cfg_params = get_config('brain', config_file=os.path.join(curdir, 'data/brain.yml'))
 
 # Inits the logging system. Only shell logging, and exception and warning catching.
 # File logging can be started by calling log.start_file_logger(path).
