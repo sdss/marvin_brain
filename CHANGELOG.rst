@@ -1,7 +1,7 @@
 Marvin's Brain Change Log
 =========================
 
-[0.2.0] - unreleased
+[0.2.0] - 2020/09/20
 --------------------
 - refactoring for code health
 - added setup.py and cfg
