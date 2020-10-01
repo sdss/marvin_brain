@@ -1,6 +1,13 @@
 Marvin's Brain Change Log
 =========================
 
+[0.2.0] - 2020/09/20
+--------------------
+- refactoring for code health
+- added setup.py and cfg
+- moved to sdsstools for logging and config
+- moved tests to top level
+
 [0.1.4] - 2020/08/31
 --------------------
 - Syntax change to accommodate networkx 2.4.x deprecations

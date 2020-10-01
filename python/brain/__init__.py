@@ -11,12 +11,21 @@ from __future__ import print_function
 import os
 import netrc
 import warnings
-import yaml
 from brain.core.exceptions import BrainError, BrainUserWarning
-from brain.utils.general.general import merge, get_yaml_loader
+from sdsstools import get_config, get_logger, get_package_version
+
+NAME = 'marvin-brain'
+
+# Loads config
+curdir = os.path.dirname(os.path.abspath(__file__))
+cfg_params = get_config('brain', config_file=os.path.join(curdir, 'data/brain.yml'))
+
+# Inits the logging system. Only shell logging, and exception and warning catching.
+# File logging can be started by calling log.start_file_logger(path).
+log = get_logger(NAME)
 
 # Set the Brain version
-__version__ = '0.1.5dev'
+__version__ = get_package_version(path=__file__, package_name=NAME)
 
 
 class BrainConfig(object):
@@ -99,17 +108,8 @@ class BrainConfig(object):
     def _load_defaults(self):
         ''' Load the Brain config yaml file '''
 
-        config = yaml.load(open(os.path.join(os.path.dirname(__file__), 'data/brain.yml')), Loader=get_yaml_loader())
-        user_config_path = os.path.expanduser('~/.brain/brain.yml')
-        if os.path.exists(user_config_path):
-            config = merge(yaml.load(open(user_config_path), Loader=get_yaml_loader()), config)
-
-        # update any matching Config values
-        for key, value in config.items():
-            if hasattr(self, key):
-                self.__setattr__(key, value)
-
-        self._custom_config = config
+        #self._custom_config = config
+        self._custom_config = cfg_params
 
     def _check_paths(self):
         ''' Check the paths in the custom config '''
