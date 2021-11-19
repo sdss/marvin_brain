@@ -1,6 +1,10 @@
 Marvin's Brain Change Log
 =========================
 
+[0.2.1] - 2021/11/19
+--------------------
+- Pinning versions of all dependencies
+
 [0.2.0] - 2020/09/20
 --------------------
 - refactoring for code health
