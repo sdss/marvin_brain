@@ -224,8 +224,15 @@ class BrainInteraction(object):
             elif self.status_code == 422:
                 self._closeRequestSession()
                 raise BrainError('Requests Http Status Error: {0}\nValidation Errors:\n{1}'.format(http, json_data))
-            else:
+            elif self.status_code == 404:
                 self._closeRequestSession()
+                raise BrainError('Requests Http Status 404 Error: {0}\n{1}'.format(http, json_data))
+            else:
+                self._closeRequestSession()                
+                # failsafe check if json_data is not a dict
+                if not isinstance(json_data, dict):
+                    raise BrainError('Requests Http Status Error: {0}\n{1}'.format(http, json_data))
+                
                 if str('api_error') in json_data:
                     apijson = json_data['api_error']
                     errmsg = '{0}'.format(apijson['message']) if 'message' in apijson else '{0}'.format(apijson['traceback'])
