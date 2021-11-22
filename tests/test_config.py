@@ -10,48 +10,19 @@
 
 from __future__ import print_function, division, absolute_import
 import pytest
-import os
 
 from brain import bconfig
 from brain.core.exceptions import BrainError, BrainUserWarning
 
+from .conftest import write
+
 # Tests on Brain Config
-
-@pytest.fixture()
-def netrc(monkeypatch, tmpdir):
-    tmpnet = tmpdir.mkdir('netrc').join('.netrc')
-    monkeypatch.setattr(bconfig, '_netrc_path', str(tmpnet))
-    yield tmpnet
-
-
-@pytest.fixture()
-def goodnet(netrc):
-    netrc.write('')
-    os.chmod(bconfig._netrc_path, 0o600)
-    yield netrc
-
-
-@pytest.fixture()
-def bestnet(goodnet):
-    goodnet.write(write('data.sdss.org'))
-    goodnet.write(write('api.sdss.org'))
-    yield goodnet
-
-
-def write(host):
-    netstr = 'machine {0}\n'.format(host)
-    netstr += '    login test\n'
-    netstr += '    password test\n'
-    netstr += '\n'
-    return netstr
-
-
 class TestVars(object):
     ''' test getting/setting variables '''
 
     @pytest.mark.parametrize('var, toval',
                              [('mode', 'remote'), ('access', 'collab'), ('compression', 'msgpack')])
-    def test_set(self, monkeypatch, var, toval):
+    def test_set(self, bestnet, monkeypatch, var, toval):
         defval = bconfig.__getattribute__(var)
         assert defval != toval
         monkeypatch.setattr(bconfig, var, toval)

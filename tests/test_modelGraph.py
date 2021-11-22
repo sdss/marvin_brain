@@ -18,8 +18,6 @@ from __future__ import print_function
 
 from brain.db.modelGraph import ModelGraph, nx
 
-from sdss.internal.database.DatabaseConnection import DatabaseConnection
-
 import unittest
 import pytest
 
@@ -30,9 +28,14 @@ import pytest
 
 # Assumes there is a local database named manga with mangadatadb and mangasampledb schemas.
 
-DatabaseConnection('postgresql+psycopg2:///manga')
-
-from sdss.internal.database.utah.mangadb import DataModelClasses, SampleModelClasses
+# adding a pytest skip for github action
+try:
+    from sdss.internal.database.DatabaseConnection import DatabaseConnection
+except:
+    pytest.skip("no database available", allow_module_level=True)
+else:
+    DatabaseConnection('postgresql+psycopg2:///manga')
+    from sdss.internal.database.utah.mangadb import DataModelClasses, SampleModelClasses
 
 
 class MarvinDB(object):

@@ -28,7 +28,8 @@ class TestGetDbMachine(object):
     def test_servers(self, monkeypatch, expname, hostname):
         ''' test correct db name is returned '''
 
-        monkeypatch.delitem(os.environ, 'MANGA_LOCALHOST')
+        if 'MANGA_LOCALHOST' in os.environ:
+            monkeypatch.delitem(os.environ, 'MANGA_LOCALHOST')
         monkeypatch.setitem(os.environ, 'HOSTNAME', hostname)
         if expname == 'utah' and not hostname:
             monkeypatch.setitem(os.environ, 'UUFSCELL', 'kingspeak.peaks')

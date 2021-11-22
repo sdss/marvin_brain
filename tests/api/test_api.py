@@ -12,7 +12,6 @@ from __future__ import print_function, division, absolute_import
 
 from brain import bconfig
 from brain.api.api import BrainInteraction, BrainAuth
-from brain.core.exceptions import BrainError
 import pytest
 import requests
 
@@ -20,7 +19,7 @@ auths = [None, 'token', 'netrc']
 
 
 @pytest.fixture(params=auths)
-def brainint(request):
+def brainint(request, bestnet):
     base = 'https://lore.sdss.utah.edu/test/'
     url = '/marvin/api/general/getroutemap/'
     ii = BrainInteraction(url, auth=request.param, send=False, base=base)
@@ -46,7 +45,9 @@ class TestBrainAuth(object):
                              [(None, None),
                               ('token', 'Bearer testtoken'),
                               ('netrc', 'Basic')], ids=['none', 'token', 'netrc'])
-    def test_call(self, monkeypatch, req, auth, check):
+    def test_call(self, mocker, monkeypatch, bestnet, req, auth, check):
+        mocker.patch('brain.api.api.get_netrc_auth', return_value=('test', 'test'))
+        
         if auth == 'token':
             monkeypatch.setattr(bconfig, 'token', 'testtoken')
 
@@ -64,7 +65,7 @@ class TestBrainAuth(object):
         a = BrainAuth(authtype='token')
 
         with pytest.raises(AssertionError) as cm:
-            r = a(req)
+            a(req)
         assert 'You must have a valid token set to use the API.  Please login.' in str(cm.value)
 
 

@@ -1,6 +1,11 @@
 Marvin's Brain Change Log
 =========================
 
+[0.2.2] - unreleased
+--------------------
+- Fixed a bug in the API response when the response is not a dictionary
+- Adding new github actions for build, test, and release on tag
+
 [0.2.1] - 2021/11/19
 --------------------
 - Pinning versions of all dependencies
