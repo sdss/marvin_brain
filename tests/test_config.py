@@ -22,7 +22,7 @@ class TestVars(object):
 
     @pytest.mark.parametrize('var, toval',
                              [('mode', 'remote'), ('access', 'collab'), ('compression', 'msgpack')])
-    def test_set(self, monkeypatch, var, toval):
+    def test_set(self, bestnet, monkeypatch, var, toval):
         defval = bconfig.__getattribute__(var)
         assert defval != toval
         monkeypatch.setattr(bconfig, var, toval)

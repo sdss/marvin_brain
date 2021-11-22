@@ -45,7 +45,9 @@ class TestBrainAuth(object):
                              [(None, None),
                               ('token', 'Bearer testtoken'),
                               ('netrc', 'Basic')], ids=['none', 'token', 'netrc'])
-    def test_call(self, monkeypatch, bestnet, req, auth, check):
+    def test_call(self, mocker, monkeypatch, bestnet, req, auth, check):
+        mocker.patch('brain.api.api.get_netrc_auth', return_value=('test', 'test'))
+        
         if auth == 'token':
             monkeypatch.setattr(bconfig, 'token', 'testtoken')
 

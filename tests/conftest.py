@@ -13,6 +13,8 @@ from __future__ import print_function, division, absolute_import
 import os
 import pytest
 from brain import bconfig
+from requests.utils import get_netrc_auth
+
 
 
 @pytest.fixture()
