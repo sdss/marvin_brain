@@ -19,14 +19,7 @@ def test_public():
     assert tt.is_public is True
 
 
-@pytest.mark.skipif(os.path.exists(bconfig._netrc_path), reason='netrc file exists')
-def test_checkPath_fail(netrc):
-    with pytest.raises(BrainError, match='No .netrc file found in your HOME directory!'):
-        checkPath(fakefunc)()
-
-
-@pytest.mark.skipif(not os.path.exists(bconfig._netrc_path), reason='netrc file does not exist')
-def test_checkPath(bestnet):
+def test_checkPath():
     tt = checkPath(fakefunc)()
     assert tt == {}
 
@@ -37,6 +30,13 @@ def test_parseRoute():
     assert kk == {'a': 'b', 'b': 2, 'c': 'd', 'e': 'f'}
 
 
-def test_check_auth():
+@pytest.mark.skipif(os.path.exists(bconfig._netrc_path), reason='netrc file exists')
+def test_check_auth_fail(netrc):
+    with pytest.raises(BrainError, match='No .netrc file found in your HOME directory!'):
+        check_auth(fakefunc)()
+
+
+@pytest.mark.skipif(not os.path.exists(bconfig._netrc_path), reason='netrc file does not exist')
+def test_check_auth(bestnet):
     tt = check_auth(fakefunc)()
     assert tt == {}
