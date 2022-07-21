@@ -1,6 +1,12 @@
 Marvin's Brain Change Log
 =========================
 
+[0.3.0] - Unreleased
+--------------------
+- Drop support for Python 2, Python < 3.8
+- Minimum requirements now requires Python > 3.8
+- Adds testing suite
+
 [0.2.2] - 2021/11/22
 --------------------
 - Fixed a bug in the API response when the response is not a dictionary
