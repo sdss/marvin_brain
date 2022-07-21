@@ -12,7 +12,7 @@ def test_query():
 
 
 def test_general():
-    b = BrainQueryView()
+    b = BrainGeneralRequestsView()
     assert b.route_base == '/general/'
 
 

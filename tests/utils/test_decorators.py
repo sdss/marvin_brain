@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 
-
+import os
+import pytest
+from brain import bconfig
+from brain.core.exceptions import BrainError
 from brain.utils.general.decorators import parseRoutePath, public, check_auth, checkPath
 
 
@@ -16,7 +19,14 @@ def test_public():
     assert tt.is_public is True
 
 
-def test_checkPath():
+@pytest.mark.skipif(os.path.exists(bconfig._netrc_path), reason='netrc file exists')
+def test_checkPath_fail(netrc):
+    with pytest.raises(BrainError, match='No .netrc file found in your HOME directory!'):
+        checkPath(fakefunc)()
+
+
+@pytest.mark.skipif(not os.path.exists(bconfig._netrc_path), reason='netrc file does not exist')
+def test_checkPath(bestnet):
     tt = checkPath(fakefunc)()
     assert tt == {}
 
