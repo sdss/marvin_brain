@@ -1,11 +1,11 @@
 Marvin's Brain Change Log
 =========================
 
-[0.3.0] - Unreleased
+[0.3.0] - 2022/07/27
 --------------------
 - Drop support for Python 2, Python < 3.8
 - Minimum requirements now requires Python > 3.8
-- Adds testing suite
+- Adds tests to testing suite
 
 [0.2.2] - 2021/11/22
 --------------------
