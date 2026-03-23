@@ -11,10 +11,14 @@ jobs:
 
         runs-on: ubuntu-latest
 
+        permissions:
+          contents: write
+          id-token: write
+
         steps:
 
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Create Release
               id: create_release
@@ -29,21 +33,24 @@ jobs:
                   prerelease: false
 
             - name: Set up Python
-              uses: actions/setup-python@v2
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.7
+                  python-version: "3.11"
 
             - name: Install dependencies
               run: |
                 python -m pip install --upgrade pip
-                pip install setuptools wheel twine
+                pip install setuptools wheel twine build
 
             - name: Build package
               run: |
-                python setup.py sdist bdist_wheel --universal
+                python -m build
 
             - name: Publish to PyPI
-              uses: pypa/gh-action-pypi-publish@master
-              with:
-                  user: __token__
-                  password: ${{ secrets.pypi_password }}
+              uses: pypa/gh-action-pypi-publish@release/v1
+
+            # - name: Publish to PyPI
+            #   uses: pypa/gh-action-pypi-publish@master
+            #   with:
+            #       user: __token__
+            #       password: ${{ secrets.pypi_password }}
