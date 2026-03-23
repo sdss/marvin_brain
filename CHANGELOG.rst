@@ -1,6 +1,11 @@
 Marvin's Brain Change Log
 =========================
 
+[0.3.1] - 2026/03/23
+--------------------
+- Fix deprecated package - PR#9
+- updating actions
+
 [0.3.0] - 2022/07/27
 --------------------
 - Drop support for Python 2, Python < 3.8
